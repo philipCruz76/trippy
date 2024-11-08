@@ -1,0 +1,77 @@
+import { create } from "zustand";
+import {produce} from "immer";
+import { ActivityType } from "@/types/trip.types";
+
+type State= {
+    title: string;
+    location: string;
+    duration: number;
+    itinerary?: {
+      title?: string;
+      days?: ActivityType[];
+      comment?: string;
+    };
+  }
+  type Actions= {
+    setTitle: (title: string) => void;
+    setLocation: (location: string) => void;
+    setDuration: (duration: number) => void;
+    setItinerary: (itinerary: State['itinerary']) => void;
+    addActivity: (activity: ActivityType["dailyActivities"][0], index:number) => void;
+    removeActivity: (index: number) => void;
+    setComment: (comment: string) => void;
+    updateActivityDuration: (dayIndex: number, activityIndex: number, durationFrom: string, durationTo: string) => void;
+  }
+  
+  export const useTripCreatorStore = create<State & Actions>((set) => ({
+    title: '',
+    location: '',
+    duration: 0,
+    itinerary: undefined,
+  
+    setTitle: (title) => set({ title }),
+    setLocation: (location) => set({ location }),
+    setDuration: (duration) => set({ duration }),
+    setItinerary: (itinerary) => set(produce((state)=> {
+      state.itinerary= itinerary;
+    })),
+    addActivity: (activity, dayIndex) =>
+      set(produce((state) => {
+        // Initialize itinerary if it doesn't exist
+        if (!state.itinerary) {
+          state.itinerary = { days: [] };
+        }
+        
+        // If days array is empty, initialize it with one day
+        if (!state.itinerary.days || state.itinerary.days.length === 0) {
+          state.itinerary.days = [{ dailyActivities: [] }];
+          dayIndex = 0; // Force dayIndex to 0 for the first activity
+        }
+        
+        // Ensure the day exists
+        while (state.itinerary.days.length <= dayIndex) {
+          state.itinerary.days.push({ dailyActivities: [] });
+        }
+  
+        state.itinerary.days[dayIndex].dailyActivities.push(activity);
+      })),
+    removeActivity: (index) => set(produce((state) => ({
+      itinerary: {
+        ...state.itinerary,
+        activities: state.itinerary?.activities?.filter((_:any, i:number) => i !== index),
+      },
+    }))),
+    setComment: (comment) => set(produce((state) => ({
+      itinerary: {
+        ...state.itinerary,
+        comment:comment,
+      },
+    }))),
+    updateActivityDuration: (dayIndex, activityIndex, durationFrom, durationTo) =>
+      set(produce((state) => {
+        if (state.itinerary?.days?.[dayIndex]?.dailyActivities?.[activityIndex]) {
+          state.itinerary.days[dayIndex].dailyActivities[activityIndex].durationFrom = durationFrom;
+          state.itinerary.days[dayIndex].dailyActivities[activityIndex].durationTo = durationTo;
+        }
+      })),
+  }));
