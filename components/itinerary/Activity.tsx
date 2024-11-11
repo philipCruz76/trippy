@@ -19,7 +19,7 @@ const Activity = ({
   dayIdx,
   actIdx,
   priority
-}: ActivityType["dailyActivities"][0] & ActivityAdditionalProps) => {
+}: ActivityType & ActivityAdditionalProps) => {
   const {removeActivity} = useTripEditorStore();
   const [imageLoading, setImageLoading] = React.useState(true);
   const [imageFallback, setImageFallback] = React.useState(false);
