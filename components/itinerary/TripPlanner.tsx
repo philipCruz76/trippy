@@ -147,7 +147,7 @@ const TripPlanner = () => {
                           {...provided.droppableProps}
                           className="flex flex-col gap-1"
                         >
-                          {tripActivities?.[index]?.map((activity: ActivityType["dailyActivities"][0], actIdx: number) => (
+                          {tripActivities?.[index]?.map((activity: ActivityType, actIdx: number) => (
                             <Draggable
                               key={`activity-${index}-${actIdx}`}
                               draggableId={`activity-${index}-${actIdx}`}

@@ -210,7 +210,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
   const parseActivities = (
     activities: any[],
     startTime: string = "09:00",
-  ): ActivityType["dailyActivities"] => {
+  ): ActivityType[] => {
     let currentTime = startTime;
 
     return activities.map((activity) => {

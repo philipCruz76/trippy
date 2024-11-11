@@ -23,21 +23,27 @@ export type GPTItineraryStructure = {
   duration: number;
 };
 
+
+
 export const ActivityValidator = z.object({
-  dailyActivities: z.array(
-    z.object({
-      id: z.string(),
-      title: z.string().min(1, "Title is required"),
-      cover: z.string().optional(),
-      manualInput: z.boolean().optional(),
-      activityType: z.string(),
-      durationFrom: z.string().optional(),
-      durationTo: z.string().optional(),
-    }),
-  ),
+  id: z.string(),
+  title: z.string().min(3, "Title is required"),
+  cover: z.string().optional(),
+  manualInput: z.boolean().optional(),
+  activityType: z.string(),
+  durationFrom: z.string().optional(),
+  durationTo: z.string().optional(),
 });
 
 export type ActivityType = z.infer<typeof ActivityValidator>;
+
+export const DailyActivites = z.object({
+  dailyActivities: z.array(
+    ActivityValidator
+  ),
+});
+
+export type DailyActivitesType = z.infer<typeof DailyActivites>;
 
 export const TripValidator = z.object({
   title: z.string(),

@@ -1,15 +1,14 @@
-import { ActivityType } from "@/types/trip.types";
+import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 import { create } from "zustand";
 import {produce} from "immer";
 
-type Activity= ActivityType["dailyActivities"][0];
 type TripEditorSate = {
     showEditor: boolean;
-    tripActivities: ActivityType["dailyActivities"][];
+    tripActivities:ActivityType[][];
     setShowEditor: (showEditor:boolean)=> void;
-    setTripActivities: (tripActivities: ActivityType["dailyActivities"][])=>void;
-  addActivity: (activity: Activity, dayIndex: number) => void;
-  updateActivity: (activity: Partial<Activity>, dayIndex: number, activityIndex: number) => void;
+    setTripActivities: (tripActivities: ActivityType[][])=>void;
+  addActivity: (activity: ActivityType, dayIndex: number) => void;
+  updateActivity: (activity: Partial<ActivityType>, dayIndex: number, activityIndex: number) => void;
   removeActivity: (dayIndex: number, activityIndex: number) => void;
   moveActivity: (fromDayIndex: number, toDayIndex: number, fromActivityIndex: number, toActivityIndex: number) => void;
 }
@@ -21,10 +20,10 @@ export const useTripEditorStore = create<TripEditorSate>()((set)=> ({
     setShowEditor: (showEditor: boolean) => 
       set({ showEditor }),
     
-    setTripActivities: (tripActivities: ActivityType["dailyActivities"][]) => 
+    setTripActivities: (tripActivities: ActivityType[][]) => 
       set({ tripActivities }),
     
-    addActivity: (activity: Activity, dayIndex: number) =>
+    addActivity: (activity: ActivityType, dayIndex: number) =>
       set(produce((state) => {
         // If tripActivities is empty, initialize it with one day
         if (state.tripActivities.length === 0) {
@@ -40,7 +39,7 @@ export const useTripEditorStore = create<TripEditorSate>()((set)=> ({
         state.tripActivities[dayIndex].push(activity);
       })),
     
-    updateActivity: (activity: Partial<Activity>, dayIndex: number, activityIndex: number) =>
+    updateActivity: (activity: Partial<ActivityType>, dayIndex: number, activityIndex: number) =>
       set(produce((state) => {
         if (!state.tripActivities[dayIndex]?.[activityIndex]) {
           return;

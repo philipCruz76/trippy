@@ -28,8 +28,8 @@ import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 
 type ActivitySelectorProps = {
   editField: boolean;
-  dayIndex:number;
-  setEditField: Dispatch<SetStateAction<{create:boolean,dayIndex:number}>>;
+  dayIndex: number;
+  setEditField: Dispatch<SetStateAction<{ create: boolean; dayIndex: number }>>;
 };
 type TimeRange = {
   from: string;
@@ -45,11 +45,10 @@ const ActivitySelector = ({
   setEditField,
 }: ActivitySelectorProps) => {
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { addActivity } = useTripEditorStore();
 
-  const form = useForm<ActivityType["dailyActivities"][0]>({
+  const form = useForm<ActivityType>({
     resolver: zodResolver(ActivityValidator),
     defaultValues: {
       title: "",
@@ -57,12 +56,21 @@ const ActivitySelector = ({
       manualInput: true,
       activityType: "",
       durationFrom: "",
-      durationTo: "", 
+      durationTo: "",
     },
     mode: "onChange",
   });
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = form;
+  const {
+    register,
+    control,
+    trigger,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors, isValid, isSubmitting, dirtyFields, touchedFields },
+  } = form;
 
   const ACTIVITY_TYPES = [
     { value: "/icons/activity.svg", label: "Activity" },
@@ -83,38 +91,44 @@ const ActivitySelector = ({
     { value: "180", label: "3h" },
   ] as const;
 
-  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     try {
       const file = event.target.files?.[0];
       if (!file) return;
 
       // Add file validation
       if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be less than 5MB');
+        setError("Image must be less than 5MB");
         return;
       }
 
-      if (!file.type.startsWith('image/')) {
-        setError('File must be an image');
+      if (!file.type.startsWith("image/")) {
+        setError("File must be an image");
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setValue("cover", reader.result as string);
+        setValue("cover", reader.result as string, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
       };
       reader.readAsDataURL(file);
     } catch (err) {
-      setError('Failed to upload image');
-      console.error('Image upload error:', err);
+      setError("Failed to upload image");
+      console.error("Image upload error:", err);
     }
   };
 
-  const onSubmit = async (data: ActivityType["dailyActivities"][0]) => {
+  const onSubmit = async (data: ActivityType) => {
     try {
-      setIsSubmitting(true);
+      console.log(data);
       setError(null);
-      
+
       const newActivity = {
         id: data.id,
         activityType: data.activityType,
@@ -129,24 +143,24 @@ const ActivitySelector = ({
       setEditField({ create: false, dayIndex: 0 });
       form.reset();
     } catch (err) {
-      setError('Failed to add activity. Please try again.');
-      console.error('Failed to add activity:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
+      setError("Failed to add activity. Please try again.");
+      console.error("Failed to add activity:", err);
+    } 
   };
 
   // Add confirmation dialog for unsaved changes
   const handleDialogClose = () => {
     if (form.formState.isDirty) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
+      const confirmed = window.confirm(
+        "You have unsaved changes. Are you sure you want to close?",
+      );
       if (!confirmed) return;
     }
     setEditField({ create: false, dayIndex: 0 });
     form.reset();
     setError(null);
   };
-  
+
   useEffect(() => {
     return () => {
       form.reset();
@@ -155,6 +169,24 @@ const ActivitySelector = ({
     };
   }, [form]);
 
+  useEffect(() => {
+    console.log('Form State:', {
+      values: getValues(),
+      errors,
+      isValid,
+      dirtyFields,
+      touchedFields
+    });
+  }, [getValues, errors, isValid, dirtyFields, touchedFields]);
+
+  const handleDebugClick = async () => {
+    const result = await trigger();
+    console.log('Trigger result:', result);
+    console.log('Current validation errors:', errors);
+    console.log('Form values:', getValues());
+    console.log('Form state:', form.formState);
+  };
+
   return (
     <Dialog
       open={editField}
@@ -162,12 +194,16 @@ const ActivitySelector = ({
       onOpenChange={(open) => {
         if (!open && form.formState.isDirty) {
           // Add confirmation before closing
-          if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
-            setEditField({create: false, dayIndex: 0});
+          if (
+            window.confirm(
+              "You have unsaved changes. Are you sure you want to close?",
+            )
+          ) {
+            setEditField({ create: false, dayIndex: 0 });
           }
           return;
         }
-        setEditField({create: false, dayIndex: 0});
+        setEditField({ create: false, dayIndex: 0 });
       }}
     >
       <DialogPortal>
@@ -180,8 +216,22 @@ const ActivitySelector = ({
           <div className="flex flex-col w-full h-full gap-4">
             <h3 className="font-sans font-semibold"> What are you planning?</h3>
             <Select
-              onValueChange={(value) => {
-                setValue("activityType", value);
+              onValueChange={async (value) => {
+                if(!getValues("id")){
+                 
+                
+                  setValue("id", crypto.randomUUID(), {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                }
+                
+                setValue("activityType", value, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true,
+                });
                 setShowForm(true);
               }}
             >
@@ -281,7 +331,9 @@ const ActivitySelector = ({
                   className="flex w-full text-black transition-colors truncate placeholder:text-muted focus:outline-none focus-visible:border-black focus:placeholder:text-gray-8 text-sm px-3 py-2 h-[32px] rounded-full bg-white border data-[invalid]:border-red-500"
                 />
                 {errors.title && (
-                  <span className="text-red-500 text-xs">{errors.title.message}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors.title.message}
+                  </span>
                 )}
 
                 <div className="grid grid-cols-3 grid-rows-1">
@@ -290,7 +342,7 @@ const ActivitySelector = ({
                       Date
                     </Label>
                     {/** !! TO-DO: !!!
-                     *  Need to be able to assign activity to specific date within gthe trip time-frame
+                     *  Need to be able to assign activity to specific date within the trip time-frame
                      */}
                     <DatePicker
                       id="date"
@@ -308,17 +360,33 @@ const ActivitySelector = ({
                       className="w-full text-black transition-colors truncate placeholder:text-opacity-30 focus:outline-none focus-visible:border-black focus:placeholder:text-gray-300 text-sm px-3 py-2 h-[32px] rounded-full bg-white border data-[invalid]:border-red-500"
                     />
                     {errors.durationFrom && (
-                      <span className="text-red-500 text-xs">{errors.durationFrom.message}</span>
+                      <span className="text-red-500 text-xs">
+                        {errors.durationFrom.message}
+                      </span>
                     )}
                   </div>
                   <div className="col-span-1 row-span-1 w-full px-[4px]">
                     <Label htmlFor="duration" className="font-semibold">
                       Duration
                     </Label>
-                    <Select onValueChange={(value) => setValue("durationTo", value)}>
-                      <SelectTrigger
-                        className="w-full text-black transition-colors truncate placeholder:text-muted focus:outline-none focus-visible:border-black focus:placeholder:text-gray-8 text-sm px-3 py-2 h-[32px] rounded-full bg-white border data-[invalid]:border-red-500"
-                      >
+                    <Select
+                      onValueChange={(value) => {
+                        const minutesToAdd = parseInt(value);
+                        const durationFrom = timeStringToMinutes(
+                          getValues("durationFrom") || "00:00",
+                        );
+                        setValue(
+                          "durationTo",
+                          minutesToTimeString(durationFrom + minutesToAdd),
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          },
+                        );
+                      }}
+                    >
+                      <SelectTrigger className="w-full text-black transition-colors truncate placeholder:text-muted focus:outline-none focus-visible:border-black focus:placeholder:text-gray-8 text-sm px-3 py-2 h-[32px] rounded-full bg-white border data-[invalid]:border-red-500">
                         <SelectValue placeholder="Duration" />
                       </SelectTrigger>
                       <SelectContent>
@@ -331,7 +399,9 @@ const ActivitySelector = ({
                       </SelectContent>
                     </Select>
                     {errors.durationTo && (
-                      <span className="text-red-500 text-xs">{errors.durationTo.message}</span>
+                      <span className="text-red-500 text-xs">
+                        {errors.durationTo.message}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -369,14 +439,14 @@ const ActivitySelector = ({
                 <div className="sticky bottom-0 mt-auto flex justify-end border-t border-separator bg-background py-4">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !form.formState.isValid}
+                    onClick={handleDebugClick}
                     className={`group group/button relative z-0 border border-transparent inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] disabled:pointer-events-none transition-colors text-center p-2 px-3 text-balance text-white text-xs min-h-[--button-sm-size] leading-[1.125] ${
-                      form.formState.isValid 
-                        ? 'bg-blue-500 hover:bg-blue-600' 
-                        : 'bg-zinc-400 opacity-50'
+                      isValid
+                        ? "bg-blue-500 hover:bg-blue-600"
+                        : "bg-zinc-400 opacity-50"
                     }`}
                   >
-                    <span>{isSubmitting ? 'Adding...' : 'Add'}</span>
+                    <span>{isSubmitting ? "Adding..." : "Add"}</span>
                   </button>
                 </div>
               </form>

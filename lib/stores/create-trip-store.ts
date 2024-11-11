@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {produce} from "immer";
-import { ActivityType } from "@/types/trip.types";
+import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 
 type State= {
     title: string;
@@ -8,7 +8,7 @@ type State= {
     duration: number;
     itinerary?: {
       title?: string;
-      days?: ActivityType[];
+      days?: DailyActivitesType[];
       comment?: string;
     };
   }
@@ -17,7 +17,7 @@ type State= {
     setLocation: (location: string) => void;
     setDuration: (duration: number) => void;
     setItinerary: (itinerary: State['itinerary']) => void;
-    addActivity: (activity: ActivityType["dailyActivities"][0], index:number) => void;
+    addActivity: (activity: ActivityType, index:number) => void;
     removeActivity: (index: number) => void;
     setComment: (comment: string) => void;
     updateActivityDuration: (dayIndex: number, activityIndex: number, durationFrom: string, durationTo: string) => void;
