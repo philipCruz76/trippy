@@ -1,8 +1,8 @@
-import { create } from "zustand";
+import { create, State } from "zustand";
 import {produce} from "immer";
 import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 
-type State= {
+export type TripCreatorState= {
     title: string;
     location: string;
     duration: number;
@@ -16,14 +16,14 @@ type State= {
     setTitle: (title: string) => void;
     setLocation: (location: string) => void;
     setDuration: (duration: number) => void;
-    setItinerary: (itinerary: State['itinerary']) => void;
+    setItinerary: (itinerary: TripCreatorState['itinerary']) => void;
     addActivity: (activity: ActivityType, index:number) => void;
     removeActivity: (index: number) => void;
     setComment: (comment: string) => void;
     updateActivityDuration: (dayIndex: number, activityIndex: number, durationFrom: string, durationTo: string) => void;
   }
   
-  export const useTripCreatorStore = create<State & Actions>((set) => ({
+  export const useTripCreatorStore = create<TripCreatorState & Actions>((set) => ({
     title: '',
     location: '',
     duration: 0,

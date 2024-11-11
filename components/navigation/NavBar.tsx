@@ -16,7 +16,7 @@ const NavBar = ({}: NavBarProps) => {
   const { showNav, setShowNav } = useNavDrawerStore();
   const { showModal, setShowModal } = useSignInModalStore();
   const { showEditor, setShowEditor } = useTripEditorStore();
-  const { itinerary } = useTripCreatorStore();
+  const {tripActivities} = useTripEditorStore();
   const [hasScrolledDown, setHasScrolledDown] = useState(false);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const NavBar = ({}: NavBarProps) => {
           alt="Trippy Logo"
         />
       </Link>
-      {itinerary && itinerary.days && itinerary.days.length > 0 ? (
+      {tripActivities && tripActivities.length > 0 ? (
         <button
           onClick={() => {
             setShowEditor(!showEditor);
@@ -103,7 +103,7 @@ const NavBar = ({}: NavBarProps) => {
             <Image src={"/icons/trip.svg"} height={20} width={20}  alt="Trip Icon" className="w-[20px] h-[20px]"/>
             Trip
             <span className="text-xs text-white font-light rounded-full bg-sky-500  p-[4px]">
-              {itinerary.days.reduce((acc, day) => acc + day.dailyActivities.length, 0)}
+              {tripActivities.reduce((acc, day) => acc + day.length, 0)}
             </span>
           </span>
         </button>

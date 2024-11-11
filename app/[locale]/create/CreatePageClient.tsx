@@ -1,6 +1,7 @@
 "use client";
 
 import TripEditor from "@/components/itinerary/TripEditor";
+import TrIpCreationWizard from "@/components/itinerary/wizard/TrIpCreationWizard";
 import { useSignInModalStore } from "@/lib/stores/signin-modal-store";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 
@@ -10,7 +11,7 @@ import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
  */
 export const CreatePageClient = () => {
   const { setShowModal } = useSignInModalStore();
-  const { setShowEditor } = useTripEditorStore();
+  const { tripActivities,setShowWizard, setShowEditor } = useTripEditorStore();
   
   return (
     <div className="mx-auto w-full max-w-[100dvw] px-8 flex flex-1 flex-row py-[84px] mobile:pt-9">
@@ -38,7 +39,13 @@ export const CreatePageClient = () => {
       </div>
       <div className="flex items-center justify-start w-[50dvw]">
         <button
-          onClick={() => setShowEditor(true)}
+          onClick={() => {
+            if(tripActivities.length>0 && tripActivities[0].length>0){
+              setShowEditor(true);
+            }else{
+              setShowWizard(true);
+            }
+          }}
           className="group group/button relative z-0 border border-transparent inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] disabled:pointer-events-none transition-colors text-center py-[.25em] text-balance bg-primary text-primary-foreground hover:bg-black/80 data-[state=open]:bg-primary-hover disabled:opacity-30 text-md min-h-[55px] px-4 leading-[1.125]"
         >
           <svg
@@ -53,6 +60,7 @@ export const CreatePageClient = () => {
           Make a new Trip
         </button>
       </div>
+      <TrIpCreationWizard />
       <TripEditor />
     </div>
   );
