@@ -59,17 +59,11 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
   const [results, setResults] = useState<google.maps.places.Place[]>([]);
   const [error, setError] = useState<Error | null>(null);
 
-  // Create a Map for faster lookups instead of using .find()
-  const placePhotosMap = useMemo(() => {
-    return new Map(
-      results.map((place) => [place.id, place.photos?.[0].getURI() || ""]),
-    );
-  }, [results]);
-
   // Optimize place mapping by reducing iterations
   const processPlaces = useCallback((places: google.maps.places.Place[]) => {
     const chatPlaces: GPTDestinationInput[] = [];
     const inputPlaces: ItineraryDestination[] = [];
+    const photosCache = new Map<string, string>();
 
     places.forEach((place, index) => {
       if (!place.id) {
@@ -79,6 +73,9 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
 
       const location = toLatLngLiteral(place.location!);
       const coverPhoto = place.photos?.[0].getURI() || "";
+      
+      // Cache the photo URL
+      photosCache.set(place.id, coverPhoto);
 
       // Only send name and description to GPT
       chatPlaces.push({
@@ -101,7 +98,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
       });
     });
 
-    return { chatPlaces, inputPlaces };
+    return { chatPlaces, inputPlaces, photosCache };
   }, []);
   // Memoize the search query
   const searchQuery = useMemo<google.maps.places.SearchNearbyRequest>(
@@ -136,10 +133,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
       const { places } = await placesLib.Place.searchNearby(searchQuery);
       setResults(places);
 
-      const { chatPlaces, inputPlaces } = processPlaces(places);
-      const photosMap = new Map(
-        inputPlaces.map((place) => [place.id, place.coverPhoto]),
-      );
+      const { chatPlaces, inputPlaces, photosCache } = processPlaces(places);
 
       try {
         const response = await fetch("/api/gpt/itinerary", {

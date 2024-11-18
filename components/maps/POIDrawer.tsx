@@ -17,7 +17,9 @@ type POIDrawerProps = {
 const POIDrawer = ({ placeData }: POIDrawerProps) => {
   const { showDrawer, setShowDrawer } = usePOIDrawerStore();
   // Use the useCachedState hook instead of useState
-  const [coverPhotos] = useCachedState("markerPhotos", [""]);
+  const [coverPhotos] = useCachedState("markerPhotos", 
+    placeData.photos?.map(photo => photo.getURI()) || []
+  );
 
   return (
     <>

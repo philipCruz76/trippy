@@ -1,54 +1,24 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import InterestMarkers from "./InterestMarkers";
 import {
   Map as GoogleMapComponent,
-  useApiIsLoaded,
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
+import { usePlaceDetails } from "@/lib/hooks/usePlaceDetails";
 
-type GoogleMapsViewerProps = {};
-
-const request: google.maps.places.SearchByTextRequest = {
-  textQuery: "Livraria Lello",
-  minRating: 3,
-  fields: [
-    "location",
-    "displayName",
-    "formattedAddress",
-    "photos",
-    "rating",
-    "svgIconMaskURI",
-    "types",
-    "userRatingCount",
-    "editorialSummary",
-  ],
-  isOpenNow: true,
-  maxResultCount: 5,
-  useStrictTypeFiltering: false,
-  region: "pt",
+type GoogleMapsViewerProps = {
+  placesIds: string[];
 };
-const GoogleMapsViewer = ({}: GoogleMapsViewerProps) => {
-  const [results, setResults] = useState<google.maps.places.Place[]>([]);
 
+const GoogleMapsViewer = ({ placesIds }: GoogleMapsViewerProps) => {
+  const { places, loading } = usePlaceDetails(placesIds);
   const map = useMap();
-  const onLoaded = useApiIsLoaded();
+ 
   const placesLib = useMapsLibrary("places");
   const [error, setError] = useState<Error | null>(null);
-
-  const getResults = useCallback(async () => {
-    if (!placesLib) return;
-    try {
-      const { places } = await placesLib.Place.searchByText(request);
-      setResults(places);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.warn(`Could not get places: ${error}`);
-        setError(error);
-      }
-    }
-  }, [placesLib, onLoaded]);
+  const [showMap, setShowMap] = useState(false);
 
   // initialize places service
   useEffect(() => {
@@ -65,25 +35,36 @@ const GoogleMapsViewer = ({}: GoogleMapsViewerProps) => {
   }, [map, placesLib]);
 
   useEffect(() => {
-    getResults();
-  }, [getResults, onLoaded]);
+    if (places.length > 0) {
+      setShowMap(true);
+    } else {
+      setShowMap(false);
+    }
+  }, [places]);
 
   if (error) return null;
+  if (!showMap) return null;
+
   return (
     <div className="relative overflow-hidden rounded-2xl">
-      <GoogleMapComponent
-        id="main-map"
-        style={{ width: "80dvw", height: "90dvh" }}
-        mapId={"768edab3237ff37e"}
-        defaultCenter={{ lat: 41.14961, lng: -8.61099 }}
-        defaultZoom={15}
-        onClick={(e) => {
-          e.domEvent?.preventDefault();
-        }}
-        gestureHandling={"cooperative"}
-      >
-        <InterestMarkers pois={results} />
-      </GoogleMapComponent>
+      {!loading && (
+        <GoogleMapComponent
+          id="main-map"
+          style={{ width: "80dvw", height: "90dvh" }}
+          mapId={"768edab3237ff37e"}
+          defaultCenter={{
+            lat: places[0].location?.lat() ?? 0,
+            lng: places[0].location?.lng() ?? 0,
+          }}
+          defaultZoom={15}
+          onClick={(e) => {
+            e.domEvent?.preventDefault();
+          }}
+          gestureHandling={"cooperative"}
+        >
+          <InterestMarkers pois={places} />
+        </GoogleMapComponent>
+      )}
     </div>
   );
 };

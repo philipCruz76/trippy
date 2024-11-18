@@ -23,8 +23,6 @@ export type GPTItineraryStructure = {
   duration: number;
 };
 
-
-
 export const ActivityValidator = z.object({
   id: z.string(),
   title: z.string().min(3, "Title is required"),
@@ -38,9 +36,7 @@ export const ActivityValidator = z.object({
 export type ActivityType = z.infer<typeof ActivityValidator>;
 
 export const DailyActivites = z.object({
-  dailyActivities: z.array(
-    ActivityValidator
-  ),
+  dailyActivities: z.array(ActivityValidator),
 });
 
 export type DailyActivitesType = z.infer<typeof DailyActivites>;
@@ -72,3 +68,78 @@ export const TripValidator = z.object({
     .optional(),
 });
 export type Trip = z.infer<typeof TripValidator>;
+
+export const TripDetailsValidator = z.object({
+  title: z.string(),
+  username: z.string(),
+  coverPhoto: z.string(),
+  location: z.string(),
+  duration: z.number(),
+  overview: z.object({
+    summary: z.string(),
+    activityTypes: z.array(z.map(z.string(), z.number())),
+  }),
+  itinerary: z.object({
+    dailyTrip: z.array(
+      z.object({
+        overview: z.object({
+          summary: z.string(),
+          activityTypes: z.array(z.map(z.string(), z.number())),
+          destinations: z.array(
+            z.object({
+              name: z.string(),
+              photos: z.array(z.string()),
+            }),
+          ),
+        }),
+        itinerary: z.array(
+          z.object({
+            title: z.string(),
+            activities: z.array(
+              z.object({
+                activityName: z.string(),
+                summary: z.string(),
+                photos: z.array(z.string()),
+                location: z.string().optional(),
+                activityType: z.string().optional(),
+                time: z.string().optional(),
+              }),
+            ),
+          }),
+        ),
+        locations: z.array(
+          z.object({
+            name: z.string(),
+            formatted_address: z.string(),
+            geometry: z.object({
+              location: z.object({
+                lat: z.number(),
+                lng: z.number()
+              })
+            }),
+            place_id: z.string(),
+          })
+        ),
+      }),
+    ),
+    locationTrip: z.array(
+      z.object({
+        title: z.string(),
+        username: z.string(),
+        location: z.string(),
+        numberOfPlaces: z.number(),
+        overview: z.string(),
+        places: z.array(
+          z.object({
+            placeName: z.string(),
+            placeType: z.string().optional(),
+            placePhotos: z.array(z.string()),
+            description: z.string().optional(),
+          }),
+        ),
+        locations: z.array(z.custom<google.maps.places.Place>()),
+      }),
+    ),
+  }),
+});
+export type TripDetails = z.infer<typeof TripDetailsValidator>;

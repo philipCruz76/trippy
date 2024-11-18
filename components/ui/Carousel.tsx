@@ -41,8 +41,6 @@ const Carousel = ({
     }
   };
 
-  
-
   if(!Array.isArray(slides)) return null;
   return (
     <Card

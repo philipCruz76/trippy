@@ -1,6 +1,6 @@
 "use client";
 
-import { format, differenceInCalendarDays } from "date-fns";
+import { format, differenceInCalendarDays, addDays } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -25,14 +25,30 @@ export function DatePicker({
     new Date(Date.now()),
   );
   const [open, setOpen] = useState<boolean>(false);
-  const { setDuration } = useTripCreatorStore();
+  const { duration, setDuration } = useTripCreatorStore();
 
   useEffect(() => {
-    if (date === undefined) return;
-    const newDuration = differenceInCalendarDays(date.to!, date.from!) + 1;
+    if (duration > 0) {
+      const startDate = new Date(Date.now());
+      const endDate = addDays(startDate, duration );
+      if (!date?.to || differenceInCalendarDays(date.to, startDate) + 1 !== duration) {
+        setDate({
+          from: startDate,
+          to: endDate
+        });
+      }
+    }
+  }, [duration]);
 
-    setDuration(newDuration);
+  useEffect(() => {
+    if (date?.from && date?.to) {
+      const newDuration = differenceInCalendarDays(date.to, date.from) + 1;
+      if (newDuration !== duration) {
+        setDuration(newDuration);
+      }
+    }
   }, [date]);
+
   return (
     <div className={cn("grid gap-2")}>
       <Dialog open={open} onOpenChange={setOpen}>

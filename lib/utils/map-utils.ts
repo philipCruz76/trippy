@@ -1,3 +1,4 @@
+import { ACTIVITY_TYPE_ICONS } from "@/constants/activity-icons";
 import { MARKER_ICONS } from "@/constants/marker-icons";
 
 /**
@@ -15,3 +16,20 @@ export const markerSVGSelector = (svgMaskURI: string | null | undefined) => {
     alt: iconEntry?.[0] ?? 'marker'
   };
 }; 
+
+
+/**
+ * Selects the appropriate icon for an activity type
+ */
+export const activityTypeIconSelector = (type: string) => {
+  if (!type) return { src: '/icons/activity.svg', alt: 'activity' };
+  
+  const typeLower = type.toLowerCase();
+  const iconEntry = Object.entries(ACTIVITY_TYPE_ICONS)
+    .find(([key]) => typeLower.includes(key));
+  
+  return {
+    src: iconEntry?.[1] ?? '/icons/activity.svg',
+    alt: iconEntry?.[0] ?? 'activity'
+  };
+};

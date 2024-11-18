@@ -45,7 +45,6 @@ const DIALOG_DIMENSIONS = {
 } as const;
 
 const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(null);
   const { markerId, setMarkerId } = usePOIStore();
   const { setShowDrawer } = usePOIDrawerStore();
@@ -61,8 +60,6 @@ const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
     let position: DialogPosition = {};
 
     // Get the marker element's bounds
-    const markerLeft = rect.left;
-    const markerRight = rect.right;
     const markerCenterX = rect.left + (rect.width / 2);
     const markerCenterY = rect.top + (rect.height / 2);
 

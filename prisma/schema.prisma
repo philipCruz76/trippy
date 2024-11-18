@@ -9,17 +9,18 @@ datasource db {
 }
 
 model User {
-  id            String    @id @unique @default(uuid())
-  email         String    @unique
+  id            String        @id @unique @default(uuid())
+  email         String        @unique
   image         String?
   name          String?
   username      String?
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at")
   emailVerified Boolean?
   accounts      Account[]
   trips         Trip[]
   chats         Chat[]
+  tripDetails   TripDetails[]
 }
 
 model Trip {
@@ -32,30 +33,18 @@ model Trip {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   itinerary   TripDay[]
-  chats       Chat[]    
+  chats       Chat[]
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model TripDay {
-  id          String         @id @default(uuid())
-  dayNumber   Int
-  title       String?
-  comment     String?        @db.Text
-  activities  TripActivity[]
-  tripId      String
-  trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
-}
-
-model TripActivity {
-  id              String    @id @default(uuid())
-  title           String
-  cover           String?
-  manualInput     Boolean?  @default(false)
-  activityType    String?
-  durationFrom    String?
-  durationTo      String?
-  tripDayId       String
-  tripDay         TripDay   @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+  id         String     @id @default(uuid())
+  dayNumber  Int
+  title      String?
+  comment    String?    @db.Text
+  activities Activity[]
+  tripId     String
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
 
 model Place {
@@ -86,7 +75,6 @@ model UnsplashCreator {
   profileLink String
   images      UnsplashImage[]
 }
-
 
 model Account {
   id                String   @id @default(uuid())
@@ -120,33 +108,83 @@ model Destinations {
 
 // Chat and related models
 model Chat {
-  id            String    @id @default(uuid())
-  userId        String    
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  keywords      Json      // Stores KeywordClassificationsType
-  location      Json      // Stores LatLngResult
-  summary       String    @db.Text
-  trip          Trip?     @relation(fields: [tripId], references: [id])
-  tripId        String?
-  days          ChatDay[]
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  keywords  Json // Stores KeywordClassificationsType
+  location  Json // Stores LatLngResult
+  summary   String    @db.Text
+  trip      Trip?     @relation(fields: [tripId], references: [id])
+  tripId    String?
+  days      ChatDay[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ChatDay {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
-  description String    @db.Text
+  description String     @db.Text
   activities  Activity[]
   chatId      String
-  chat        Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chat        Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model TripDetails {
+  id         String     @id @default(uuid())
+  title      String
+  username   String
+  location   String
+  coverPhoto String
+  duration   Int
+  overview   Overview?
+  itinerary  Itinerary?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Overview {
+  id            String      @id @default(uuid())
+  summary       String      @db.Text
+  activityTypes Json // Array of maps storing activity type counts
+  tripId        String      @unique
+  trip          TripDetails @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model Itinerary {
+  id        String      @id @default(uuid())
+  dailyTrip DailyTrip[]
+  tripId    String      @unique
+  trip      TripDetails @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model DailyTrip {
+  id        String @id @default(uuid())
+  dayNumber Int
+  title     String
+  overview  Json // Stores { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
+
+  locations   Json // Stores array of Google Places
+  activities  Activity[]
+  itineraryId String
+  itinerary   Itinerary  @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
-  id              String    @id @default(uuid())
-  name            String
-  editorialSummary String?  @db.Text
-  placeId         String    // Google Places ID
-  chatDayId       String
-  chatDay         ChatDay   @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  placeId      String // Google Places ID
+  activityName String
+  summary      String    @db.Text
+  photos       String[]
+  location     String?
+  activityType String?
+  time         String?
+  dailyTripId  String
+  dailyTrip    DailyTrip @relation(fields: [dailyTripId], references: [id], onDelete: Cascade)
+  tripDayId    String?
+  tripDay      TripDay?  @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+  chatDayId    String?
+  chatDay      ChatDay?  @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
 }
