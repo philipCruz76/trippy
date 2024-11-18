@@ -7,7 +7,6 @@ import Link from "next/link";
 import { lazy, useEffect, useState } from "react";
 import SignInModal from "../sign-in/SignInModal";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
-import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 
 const MenuDrawer = lazy(() => import("@/components/navigation/MenuDrawer"));
 type NavBarProps = {};
@@ -75,7 +74,7 @@ const NavBar = ({}: NavBarProps) => {
           <Link href={"/explore"}>Start Exploring</Link>
         </li>
         <li className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer">
-          Creator Program
+          <Link href={"/create"}>Creator Program</Link>
         </li>
       </ul>
 

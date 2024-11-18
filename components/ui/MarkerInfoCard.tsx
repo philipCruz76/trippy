@@ -16,7 +16,7 @@ type MarkerInfoCardProps = {
  */
 const MarkerInfoCard = ({ placeData }: MarkerInfoCardProps) => {
   // State management with caching
-  const [coverPhotos, setCoverPhoto] = useCachedState("markerPhotos", [""]);
+  const [coverPhotos, setCoverPhoto] = useCachedState("infoCardPhotos", [""]);
   const [photoDetails, setPhotoDetails] = useState<UnsplashImage[]>();
 
 
