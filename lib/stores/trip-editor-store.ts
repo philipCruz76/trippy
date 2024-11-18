@@ -33,7 +33,16 @@ export const useTripEditorStore = create<TripEditorSate>()((set) => ({
   setShowWizard: (showWizard: boolean) => set({ showWizard }),
 
   setTripActivities: (tripActivities: ActivityType[][]) =>
-    set({ tripActivities }),
+    set(
+      produce((state) => {
+        // If tripActivities is empty or doesn't match duration, initialize it
+        if (!tripActivities || tripActivities.length === 0) {
+          state.tripActivities = Array(state.duration).fill([]);
+        } else {
+          state.tripActivities = tripActivities;
+        }
+      })
+    ),
 
   addActivity: (activity: ActivityType, dayIndex: number) =>
     set(

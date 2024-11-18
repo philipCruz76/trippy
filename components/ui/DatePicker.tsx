@@ -28,26 +28,24 @@ export function DatePicker({
   const { duration, setDuration } = useTripCreatorStore();
 
   useEffect(() => {
-    if (duration > 0) {
+    if (duration > 0 && (!date?.to || !date?.from)) {
       const startDate = new Date(Date.now());
-      const endDate = addDays(startDate, duration );
-      if (!date?.to || differenceInCalendarDays(date.to, startDate) + 1 !== duration) {
-        setDate({
-          from: startDate,
-          to: endDate
-        });
-      }
+      const endDate = addDays(startDate, duration - 1);
+      setDate({
+        from: startDate,
+        to: endDate
+      });
     }
   }, [duration]);
 
   useEffect(() => {
     if (date?.from && date?.to) {
       const newDuration = differenceInCalendarDays(date.to, date.from) + 1;
-      if (newDuration !== duration) {
+      if (newDuration !== duration && !isNaN(newDuration)) {
         setDuration(newDuration);
       }
     }
-  }, [date]);
+  }, [date?.from, date?.to]);
 
   return (
     <div className={cn("grid gap-2")}>

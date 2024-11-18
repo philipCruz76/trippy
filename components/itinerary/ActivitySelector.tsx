@@ -47,6 +47,7 @@ const ActivitySelector = ({
   const [showForm, setShowForm] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { addActivity } = useTripEditorStore();
+  const [selectedActivityType, setSelectedActivityType] = useState<string>("");
 
   const form = useForm<ActivityType>({
     resolver: zodResolver(ActivityValidator),
@@ -187,6 +188,24 @@ const ActivitySelector = ({
     console.log('Form state:', form.formState);
   };
 
+  useEffect(() => {
+    if (selectedActivityType) {
+      setValue("id", getValues("id") || crypto.randomUUID(), {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      
+      setValue("activityType", selectedActivityType, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      
+      setShowForm(true);
+    }
+  }, [selectedActivityType, setValue]);
+
   return (
     <Dialog
       open={editField}
@@ -216,23 +235,8 @@ const ActivitySelector = ({
           <div className="flex flex-col w-full h-full gap-4">
             <h3 className="font-sans font-semibold"> What are you planning?</h3>
             <Select
-              onValueChange={async (value) => {
-                if(!getValues("id")){
-                 
-                
-                  setValue("id", crypto.randomUUID(), {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true,
-                  });
-                }
-                
-                setValue("activityType", value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
-                setShowForm(true);
+              onValueChange={(value) => {
+                setSelectedActivityType(value);
               }}
             >
               <SelectTrigger>

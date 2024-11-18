@@ -51,12 +51,15 @@ const TripPlanner = () => {
   useEffect(() => {
     // Guards against undefined/null values
     if (!itinerary?.days || itinerary.days.length !== duration) {
+      // Initialize empty arrays for each day
+      const emptyDays = Array.from({ length: duration }, () => ({ dailyActivities: [] }));
+      setItinerary({ days: emptyDays });
       return;
     }
 
     // Check if activities are actually different before updating
-    const newActivities = itinerary.days.map((day) => day.dailyActivities);
-    setTripActivities(newActivities);
+  const newActivities = itinerary.days.map((day) => day.dailyActivities);
+  setTripActivities(newActivities);
   }, [itinerary, duration]);
 
   const handleDragEnd = (result: any) => {
@@ -126,7 +129,7 @@ const TripPlanner = () => {
           </h2>
           <DragDropContext onDragEnd={handleDragEnd}>
             <Accordion type="multiple" defaultValue={["day-1"]}>
-              {Array.from(new Array(Math.max(1, itinerary?.days?.length || 1))).map((_, index) => (
+              {Array.from({ length: duration }, (_, index) => (
                 <AccordionItem
                   key={`day-${index + 1}`}
                   value={`day-${index + 1}`}
