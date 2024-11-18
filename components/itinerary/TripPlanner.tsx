@@ -17,6 +17,18 @@ import Activity from "./Activity";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { ActivityType } from "@/types/trip.types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
 /**
  * TripPlanner component for managing trip details and activities
@@ -24,10 +36,6 @@ import { ActivityType } from "@/types/trip.types";
  */
 const TripPlanner = () => {
   // State management
-  const [open, setIsOpen] = useState<boolean>(false);
-  const [editLocation, setEditLocation] = useState<boolean>(false);
-  const [createActivity, setCreateActivity] = useState({create: false, dayIndex: 0});
-
   // Trip state management hooks
   const {
     title,
@@ -42,8 +50,22 @@ const TripPlanner = () => {
     addActivity,
     removeActivity,
   } = useTripCreatorStore();
+  const [open, setIsOpen] = useState<boolean>(false);
+  const [editLocation, setEditLocation] = useState<boolean>(false);
+  const [createActivity, setCreateActivity] = useState({
+    create: false,
+    dayIndex: 0,
+  });
+  const [dayToDelete, setDayToDelete] = useState<number | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(),
+    to: addDays(new Date(), duration - 1)
+  });
+
   
-  const { tripActivities, setTripActivities,moveActivity } = useTripEditorStore();
+
+  const { tripActivities, setTripActivities, moveActivity } =
+    useTripEditorStore();
 
   /**
    * Syncs itinerary activities with trip activities when itinerary changes
@@ -52,34 +74,93 @@ const TripPlanner = () => {
     // Guards against undefined/null values
     if (!itinerary?.days || itinerary.days.length !== duration) {
       // Initialize empty arrays for each day
-      const emptyDays = Array.from({ length: duration }, () => ({ dailyActivities: [] }));
+      const emptyDays = Array.from({ length: duration }, () => ({
+        dailyActivities: [],
+      }));
       setItinerary({ days: emptyDays });
       return;
     }
 
     // Check if activities are actually different before updating
-  const newActivities = itinerary.days.map((day) => day.dailyActivities);
-  setTripActivities(newActivities);
+    const newActivities = itinerary.days.map((day) => day.dailyActivities);
+    setTripActivities(newActivities);
   }, [itinerary, duration]);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const sourceDay = parseInt(result.source.droppableId.split('-')[1]);
-    const destinationDay = parseInt(result.destination.droppableId.split('-')[1]);
-    
+    const sourceDay = parseInt(result.source.droppableId.split("-")[1]);
+    const destinationDay = parseInt(
+      result.destination.droppableId.split("-")[1],
+    );
+
     moveActivity(
       sourceDay,
       destinationDay,
       result.source.index,
-      result.destination.index
+      result.destination.index,
     );
   };
 
+  const handleDateChange = (range: DateRange) => {
+    setDateRange(range);
+  };
+
+  const handleAddDay = () => {
+    if (!itinerary?.days) {
+      setItinerary({
+        days: [{ dailyActivities: [] }],
+      });
+      setDuration(1);
+      return;
+    }
+
+    // Create new itinerary with preserved data
+    const newItinerary = {
+      days: [
+        ...itinerary.days,
+        { dailyActivities: [] }, // Add new empty day
+      ],
+    };
+
+    setItinerary(newItinerary);
+    setDuration(duration + 1);
+
+    if (dateRange.from) {
+      setDateRange({
+        from: dateRange.from,
+        to: addDays(dateRange.from, duration)
+      });
+    }
+  };
+
+  const handleRemoveDay = (dayIndex: number) => {
+    if (duration <= 1 || !itinerary || !itinerary.days) return;
+
+    // Create new itinerary without the removed day but preserve other days
+    const newItinerary = {
+      days: itinerary.days.filter((_, index) => index !== dayIndex),
+    };
+
+    setItinerary(newItinerary);
+    setDuration(duration - 1);
+
+    if (dateRange.from) {
+      setDateRange({
+        from: dateRange.from,
+        to: addDays(dateRange.from, duration - 2)
+      });
+    }
+
+    setDayToDelete(null);
+  };
+
   return (
-  
-      <div className="flex flex-col h-full overflow-hidden">
-      <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="flex flex-col h-full overflow-hidden"
+      >
         <div className="w-full">
           {/* Trip Title */}
           <div className="relative group pb-4 pt-6 flex flex-row gap-2 min-w-full items-center">
@@ -115,18 +196,37 @@ const TripPlanner = () => {
                 </span>
               </button>
             </div>
-            <DatePicker className="relative flex z-1 -mx-px -my-1 h-[32px] px-3 rounded-r-full transition-colors hover:bg-foreground/5 hover:text-foreground text-foreground" />
+            <DatePicker 
+              className="relative flex z-1 -mx-px -my-1 h-[32px] px-3 rounded-r-full transition-colors hover:bg-foreground/5 hover:text-foreground text-foreground"
+              onDateChange={handleDateChange}
+            />
           </div>
         </div>
         {/* Itinerary */}
         <div className="w-full h-full overflow-y-scroll">
-          <h2 className="font-semibold text-xl">
-            Itinerary{" "}
-            <span className="text-gray-400 font-light text-sm">
-              {" "}
-              {isNaN(itinerary?.days?.length!) ? 1 : itinerary?.days?.length} days
-            </span>
-          </h2>
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="font-semibold text-xl">
+              Itinerary{" "}
+              <span className="text-gray-400 font-light text-sm">
+                {" "}
+                {isNaN(itinerary?.days?.length!)
+                  ? 1
+                  : itinerary?.days?.length}{" "}
+                days
+              </span>
+            </h2>
+            <button
+              onClick={handleAddDay}
+              className="flex items-center gap-1 px-3 py-1 rounded-full border hover:bg-zinc-200 transition-colors duration-300 group"
+            >
+              <span className="text-blue-500 text-lg group-hover:scale-125 transform ease-in-out duration-300">
+                +
+              </span>
+              <span className="text-blue-500 group-hover:font-semibold transform ease-in-out duration-300">
+                Add day
+              </span>
+            </button>
+          </div>
           <DragDropContext onDragEnd={handleDragEnd}>
             <Accordion type="multiple" defaultValue={["day-1"]}>
               {Array.from({ length: duration }, (_, index) => (
@@ -135,13 +235,72 @@ const TripPlanner = () => {
                   value={`day-${index + 1}`}
                   className="border-none"
                 >
-                  <AccordionTrigger
-                    className="flex w-full items-center justify-start"
-                    onClick={() => setIsOpen((prev) => !prev)}
-                  >
-                    <h3>Day {index + 1}</h3>
-                  
-                  </AccordionTrigger>
+                  <div className="flex items-center justify-between">
+                    <AccordionTrigger
+                      className="flex w-full items-center justify-start"
+                      onClick={() => setIsOpen((prev) => !prev)}
+                    >
+                      <h3>Day {index + 1}</h3>
+                    </AccordionTrigger>
+
+                    {duration > 1 && (
+                      <Dialog open={dayToDelete === index}>
+                        <DialogTrigger asChild>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDayToDelete(index);
+                            }}
+                            className="mr-4 p-1.5 rounded-full hover:bg-red-100 group transition-colors duration-300"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              fill="#EF4444"
+                              viewBox="0 0 32 32"
+                              id="trash-bin"
+                              className=" group-hover:scale-110 transition-transform duration-300"
+                            >
+                              <path
+                                fill="#EF4444"
+                                d="M13 17C13 16.4477 12.5523 16 12 16 11.4477 16 11 16.4477 11 17V23C11 23.5523 11.4477 24 12 24 12.5523 24 13 23.5523 13 23V17zM16 16C16.5523 16 17 16.4477 17 17V23C17 23.5523 16.5523 24 16 24 15.4477 24 15 23.5523 15 23V17C15 16.4477 15.4477 16 16 16zM21 17C21 16.4477 20.5523 16 20 16 19.4477 16 19 16.4477 19 17V23C19 23.5523 19.4477 24 20 24 20.5523 24 21 23.5523 21 23V17z"
+                              ></path>
+                              <path
+                                fill="#EF4444"
+                                fill-rule="evenodd"
+                                d="M14 2C13.4477 2 13 2.44772 13 3V5H7.00001C6.54114 5 6.14116 5.3123 6.02987 5.75746L5.02987 9.75746C4.95518 10.0562 5.0223 10.3727 5.2118 10.6154C5.40131 10.8581 5.69207 11 6.00001 11H7V29C7 29.5523 7.44772 30 8 30H24C24.5523 30 25 29.5523 25 29V11H26C26.3079 11 26.5987 10.8581 26.7882 10.6154C26.9777 10.3727 27.0448 10.0562 26.9702 9.75746L25.9702 5.75746C25.8589 5.3123 25.4589 5 25 5H19V3C19 2.44772 18.5523 2 18 2H14ZM17 5H15V4H17V5ZM9 28V11H23V28H9ZM24.2192 7L24.7192 9H7.28079L7.78079 7H24.2192Z"
+                                clip-rule="evenodd"
+                              ></path>
+                            </svg>
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Remove Day {index + 1}</DialogTitle>
+                            <DialogDescription>
+                              Are you sure you want to remove Day {index + 1}?
+                              This action cannot be undone.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter className="flex gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setDayToDelete(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleRemoveDay(index)}
+                            >
+                              Remove
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                   <AccordionContent className="flex flex-col gap-1 overflow-y-scroll max-h-[350px]">
                     <Droppable droppableId={`day-${index}`}>
                       {(provided) => (
@@ -150,43 +309,47 @@ const TripPlanner = () => {
                           {...provided.droppableProps}
                           className="flex flex-col gap-1"
                         >
-                          {tripActivities?.[index]?.map((activity: ActivityType, actIdx: number) => (
-                            <Draggable
-                              key={`activity-${index}-${actIdx}`}
-                              draggableId={`activity-${index}-${actIdx}`}
-                              index={actIdx}
-                            >
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={cn(
-                                    "transition-shadow",
-                                    snapshot.isDragging && "shadow-lg"
-                                  )}
-                                >
-                                  <Activity
-                                  id={activity.id}
-                                    activityType={activity.activityType}
-                                    cover={activity.cover}
-                                    durationFrom={activity.durationFrom}
-                                    durationTo={activity.durationTo}
-                                    title={activity.title}
-                                    manualInput={activity.manualInput}
-                                    dayIdx={index}
-                                    actIdx={actIdx}
-                                  />
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
+                          {tripActivities?.[index]?.map(
+                            (activity: ActivityType, actIdx: number) => (
+                              <Draggable
+                                key={`activity-${index}-${actIdx}`}
+                                draggableId={`activity-${index}-${actIdx}`}
+                                index={actIdx}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={cn(
+                                      "transition-shadow",
+                                      snapshot.isDragging && "shadow-lg",
+                                    )}
+                                  >
+                                    <Activity
+                                      id={activity.id}
+                                      activityType={activity.activityType}
+                                      cover={activity.cover}
+                                      durationFrom={activity.durationFrom}
+                                      durationTo={activity.durationTo}
+                                      title={activity.title}
+                                      manualInput={activity.manualInput}
+                                      dayIdx={index}
+                                      actIdx={actIdx}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ),
+                          )}
                           {provided.placeholder}
                         </div>
                       )}
                     </Droppable>
                     <button
-                      onClick={() => setCreateActivity({create: true, dayIndex: index})}
+                      onClick={() =>
+                        setCreateActivity({ create: true, dayIndex: index })
+                      }
                       className="w-[90px] text-center items-center justify-center flex rounded-full border p-1 hover:bg-zinc-200 hover:animate-pulse group"
                     >
                       <span className="text-blue-500 text-xl group-hover:scale-125 transform ease-in-out duration-300">

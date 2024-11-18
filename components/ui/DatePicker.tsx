@@ -13,10 +13,13 @@ import { useEffect, useState } from "react";
 
 type DatePickerProps = {
   singleMode?: boolean;
+  onDateChange?: (range: DateRange) => void;
 };
+
 export function DatePicker({
   className,
   singleMode,
+  onDateChange,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerProps) {
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(Date.now()),
@@ -27,17 +30,21 @@ export function DatePicker({
   const [open, setOpen] = useState<boolean>(false);
   const { duration, setDuration } = useTripCreatorStore();
 
+  // Update dates when duration changes
   useEffect(() => {
-    if (duration > 0 && (!date?.to || !date?.from)) {
-      const startDate = new Date(Date.now());
+    if (duration > 0 && date?.from) {
+      const startDate = date.from;
       const endDate = addDays(startDate, duration - 1);
-      setDate({
+      const newRange = {
         from: startDate,
-        to: endDate
-      });
+        to: endDate,
+      };
+      setDate(newRange);
+      onDateChange?.(newRange);
     }
   }, [duration]);
 
+  // Update duration when dates change
   useEffect(() => {
     if (date?.from && date?.to) {
       const newDuration = differenceInCalendarDays(date.to, date.from) + 1;
@@ -46,6 +53,13 @@ export function DatePicker({
       }
     }
   }, [date?.from, date?.to]);
+
+  const handleDateSelect = (newDate: DateRange | undefined) => {
+    if (newDate) {
+      setDate(newDate);
+      onDateChange?.(newDate);
+    }
+  };
 
   return (
     <div className={cn("grid gap-2")}>
@@ -123,7 +137,7 @@ export function DatePicker({
                 mode="range"
                 defaultMonth={date?.from}
                 selected={date}
-                onSelect={setDate}
+                onSelect={handleDateSelect}
                 numberOfMonths={2}
               />
             )}
