@@ -11,6 +11,7 @@ type CarouselProps = {
   size: "normal" | "large" | "custom";
   customHeight?: string;
   asPhotosOnly?: boolean;
+  link?: string;
   unsplashPhotos?: boolean;
 };
 
@@ -21,6 +22,7 @@ const Carousel = ({
   customHeight,
   asPhotosOnly,
   unsplashPhotos,
+  link,
 }: CarouselProps) => {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const buttonsRef = useRef(null);
@@ -34,7 +36,7 @@ const Carousel = ({
   ) => {
     // Check if the clicked element is the button or if the Carousel is in Photos only mode
     if (
-      (event.target as HTMLElement).tagName.toLowerCase() !== "div" ||
+      (event.target as HTMLElement).tagName.toLowerCase() !== "img" ||
       asPhotosOnly
     ) {
       event.preventDefault(); // Prevent the redirection
@@ -56,7 +58,7 @@ const Carousel = ({
       <CardContent className="absolute inset-0 overflow-hidden text-center content-center rounded-[inherit] object-cover object-center transition-transform ease-out duration-500">
         <Link
           id="trip-link"
-          href={"/explore/lisbon"}
+          href={link || ""}
           onClick={(e) => handleClick(e)}
           className="min-h-full min-w-full group"
         >
@@ -66,7 +68,7 @@ const Carousel = ({
             priority
             alt={`Lisbon Photo-${currentSlide}`}
           />
-
+{slides.length > 1 && (
           <div
             ref={buttonsRef}
             className="absolute inset-0 flex items-center justify-between p-4"
@@ -83,7 +85,7 @@ const Carousel = ({
             >
               <ChevronRight size={24} />
             </button>
-          </div>
+          </div> )}
           {unsplashPhotos !== undefined ? (
             <div className="absolute right-4 bottom-[24px] flex gap-2.5">
               <button className="group group/button relative z-0 border border-transparent inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] disabled:pointer-events-none disabled:opacity-50 text-center py-[.25em] text-balance text-2xs min-h-[--button-xs-size] leading-[1.125] px-0 shrink-0 size-[--button-xs-size] transition-transform hover:scale-110">
@@ -119,14 +121,17 @@ const Carousel = ({
                   </svg>
                 </button>
               </div>
+              {/** ADD THIS BACK LATER 
               <div className="absolute left-4 top-5 flex gap-2.5">
                 <span className="inline-flex items-center font-medium border text-sm whitespace-nowrap shrink-0 rounded-full bg-background/60 text-foreground text-3xs h-4 backdrop-blur-sm leading-none px-[.625em]">
                   {" "}
                   10 Locations
                 </span>
               </div>{" "}
+              */}
             </>
           ) : null}
+          {slides.length > 1 && (
           <div className="absolute bottom-4 right-0 left-0">
             <div className="flex items-center justify-center gap-2">
               {slides.map((_, i) => (
@@ -139,7 +144,8 @@ const Carousel = ({
                 />
               ))}
             </div>
-          </div>
+            </div>
+          )}
         </Link>
       </CardContent>
     </Card>
