@@ -43,7 +43,31 @@ const Carousel = ({
     }
   };
 
-  if(!Array.isArray(slides)) return null;
+  if(!Array.isArray(slides) || slides.length === 0) {
+    // Return carousel with not-found image
+    return (
+      <Card
+        className={cn(
+          "relative mb-4 aspect-portrait overflow-hidden rounded-2xl",
+          size === "custom"
+            ? `w-full h-[${customHeight!}px]`
+            : size === "normal"
+              ? "w-[304px] h-[347px]"
+              : "w-full h-full",
+        )}
+      >
+        <CardContent className="absolute inset-0 overflow-hidden text-center content-center rounded-[inherit] object-cover object-center">
+          <Image
+            src="/not-found.svg"
+            fill
+            priority
+            alt="No images found"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={cn(

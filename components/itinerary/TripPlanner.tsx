@@ -29,6 +29,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 /**
  * TripPlanner component for managing trip details and activities
@@ -59,13 +61,13 @@ const TripPlanner = () => {
   const [dayToDelete, setDayToDelete] = useState<number | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(),
-    to: addDays(new Date(), duration - 1)
+    to: addDays(new Date(), duration - 1),
   });
-
-  
 
   const { tripActivities, setTripActivities, moveActivity } =
     useTripEditorStore();
+
+  const router = useRouter();
 
   /**
    * Syncs itinerary activities with trip activities when itinerary changes
@@ -129,7 +131,7 @@ const TripPlanner = () => {
     if (dateRange.from) {
       setDateRange({
         from: dateRange.from,
-        to: addDays(dateRange.from, duration)
+        to: addDays(dateRange.from, duration),
       });
     }
   };
@@ -148,11 +150,54 @@ const TripPlanner = () => {
     if (dateRange.from) {
       setDateRange({
         from: dateRange.from,
-        to: addDays(dateRange.from, duration - 2)
+        to: addDays(dateRange.from, duration - 2),
       });
     }
 
     setDayToDelete(null);
+  };
+
+  const handleSaveTrip = async () => {
+    // Check if there are days and at least one activity
+    if (!itinerary?.days || itinerary.days.length === 0) {
+      toast.error("Please add at least one day to your trip");
+      return;
+    }
+
+    const hasActivities = itinerary.days.some(day => 
+      day.dailyActivities && day.dailyActivities.length > 0
+    );
+
+    if (!hasActivities) {
+      toast.error("Please add at least one activity to your trip");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/trips", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          location,
+          duration,
+          itinerary,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save trip");
+      }
+
+      const savedTrip = await response.json();
+      
+      toast.success("Trip saved successfully!");
+      router.push(`/explore/${savedTrip.id}`);
+    } catch (error) {
+      toast.error("Failed to save trip. Please try again.");
+    }
   };
 
   return (
@@ -196,12 +241,37 @@ const TripPlanner = () => {
                 </span>
               </button>
             </div>
-            <DatePicker 
+            <DatePicker
               className="relative flex z-1 -mx-px -my-1 h-[32px] px-3 rounded-r-full transition-colors hover:bg-foreground/5 hover:text-foreground text-foreground"
               onDateChange={handleDateChange}
             />
           </div>
         </div>
+        <div className="flex justify-end mb-4">
+            {/** TODO: Implement save trip functionality */}
+            <Button
+              onClick={handleSaveTrip}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+              Save Trip
+            </Button>
+          </div>
         {/* Itinerary */}
         <div className="w-full h-full overflow-y-scroll">
           <div className="flex items-center gap-2 mb-2">
@@ -260,7 +330,7 @@ const TripPlanner = () => {
                               fill="#EF4444"
                               viewBox="0 0 32 32"
                               id="trash-bin"
-                              className=" group-hover:scale-110 transition-transform duration-300"
+                              className="group-hover:scale-110 transition-transform duration-300"
                             >
                               <path
                                 fill="#EF4444"

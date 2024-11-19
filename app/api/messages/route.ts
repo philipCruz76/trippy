@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ aiResponse: response, aiLocation: location });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return new NextResponse("MESSAGE_SEND_ERROR", { status: 500 });
   }
 }

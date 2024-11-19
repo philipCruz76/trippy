@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return new NextResponse("MESSAGE_SEND_ERROR", { status: 500 });
   }
 }

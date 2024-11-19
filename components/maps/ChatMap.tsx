@@ -48,6 +48,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
   const {
     setTitle,
     setLocation,
+    setComment,
     setDuration,
     setItinerary,
     updateActivityDuration,
@@ -249,6 +250,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
     setLocation(keywords.location);
     setDuration(parseInt(keywords.duration));
     setItinerary({ days: parsedActivities });
+    setComment(dailyItinerary.summary);
 
     // Batch the duration updates
     parsedActivities.forEach((day, dayIndex) => {
