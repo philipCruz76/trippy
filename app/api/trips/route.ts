@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
 import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 
@@ -17,6 +19,15 @@ type PostBody = {
 
 export async function POST(request: Request) {
     try {
+      const session = await getServerSession(authOptions);
+      
+      if (!session?.user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+
       const body = await request.json();
       const { title, location, duration, itinerary } = body as PostBody;
   
@@ -25,9 +36,9 @@ export async function POST(request: Request) {
           title,
           location,
           duration,
-          username: "Test User",
-          userId: "thisisatestid",
-          coverPhoto: "https://images.unsplash.com/photo-1684419432137-f35689916e1a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8UE9ydG98ZW58MHwxfDB8fHwy",
+          username: session.user.username || 'Anonymous',
+          userId: session.user.id,
+          coverPhoto: "https://images.unsplash.com/photo-1583295125721-766a0088cd3f?q=80&w=2564&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           overview: {
             create: {
               summary: "",

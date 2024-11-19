@@ -7,15 +7,23 @@ import Link from "next/link";
 import { lazy, useEffect, useState } from "react";
 import SignInModal from "../sign-in/SignInModal";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
+import { useSession } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "next-auth/react";
 
 const MenuDrawer = lazy(() => import("@/components/navigation/MenuDrawer"));
-type NavBarProps = {};
 
-const NavBar = ({}: NavBarProps) => {
+const NavBar = () => {
+  const { data: session } = useSession();
   const { showNav, setShowNav } = useNavDrawerStore();
   const { showModal, setShowModal } = useSignInModalStore();
   const { showEditor, setShowEditor } = useTripEditorStore();
-  const {tripActivities} = useTripEditorStore();
+  const { tripActivities } = useTripEditorStore();
   const [hasScrolledDown, setHasScrolledDown] = useState(false);
 
   useEffect(() => {
@@ -33,6 +41,7 @@ const NavBar = ({}: NavBarProps) => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
   return (
     <nav
       className={cn(
@@ -108,15 +117,35 @@ const NavBar = ({}: NavBarProps) => {
         </button>
       ) : null}
 
-      <button
-        onClick={() => {
-          setShowModal(!showModal);
-        }}
-        className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4  min-h-[32px] cursor-pointer"
-      >
-        Sign In
-      </button>
-      {showModal ? <SignInModal /> : null}
+      {session ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer flex items-center gap-2">
+            <Image
+              src={session.user?.image || "/default-avatar.png"}
+              alt="Profile"
+              width={24}
+              height={24}
+              className="rounded-full"
+            />
+            <span>{session.user?.name}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => signOut()}>
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <>
+          <button
+            onClick={() => setShowModal(!showModal)}
+            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer"
+          >
+            Sign In
+          </button>
+          {showModal ? <SignInModal /> : null}
+        </>
+      )}
     </nav>
   );
 };

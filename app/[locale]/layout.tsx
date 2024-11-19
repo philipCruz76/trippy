@@ -11,7 +11,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import NavBar from "@/components/navigation/NavBar";
 import { ReactNode } from "react";
-import ToasterContext from "@/lib/providers/ToasterContext";
+import ProvidersContext from "@/lib/providers/ProvidersContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,9 +44,10 @@ export default async function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable}`}
     >
       <body className={inter.className}>
-        <ToasterContext />
-        <NavBar />
-        {children}
+        <ProvidersContext>
+          <NavBar />
+          {children}
+        </ProvidersContext>
       </body>
     </html>
   );

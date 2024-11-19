@@ -1,23 +1,25 @@
 import { NextRequest } from "next/server";
 import { availableLocaleCodes, defaultLocale } from "./next.locales.mjs";
 import createMiddleware from "next-intl/middleware";
+import { getToken } from "next-auth/jwt";
 
 const intlMiddleware = createMiddleware({
-  // A list of all locales that are supported
   locales: availableLocaleCodes,
-
-  // Used when no locale matches
   defaultLocale: defaultLocale.code,
-
-  // Always use a Locale as a prefix for routing
   localePrefix: "always",
-
-  // We already have our own way of providing alternate links
-  // generated on `next.dynamic.mjs`
   alternateLinks: false,
 });
 
 export default async function middleware(req: NextRequest) {
+  const token = await getToken({ req });
+  const pathname = req.nextUrl.pathname;
+  
+  // Check both root path and localized root path (e.g., '/en')
+  if (token && (pathname === '/' || availableLocaleCodes.some(locale => pathname === `/${locale}`))) {
+    const locale = pathname.split('/')[1] || defaultLocale.code;
+    return Response.redirect(new URL(`/${locale}/explore`, req.url));
+  }
+
   return intlMiddleware(req);
 }
 

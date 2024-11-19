@@ -13,7 +13,7 @@ model User {
   email         String        @unique
   image         String?
   name          String?
-  username      String?
+  username      String?       @unique
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime      @updatedAt @map("updated_at")
   emailVerified Boolean?
@@ -133,7 +133,7 @@ model ChatDay {
 model TripDetails {
   id         String     @id @default(uuid())
   title      String
-  username   String
+  username   String?
   location   String
   coverPhoto String
   duration   Int

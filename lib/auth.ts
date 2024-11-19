@@ -20,31 +20,70 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ token, session }) {
       if (token) {
-        session.user.name = token.name!;
-        session.user.image = token.picture!;
-        session.user.id = token.id;
-        session.user.email = token.email!;
-        session.user.username = token.username!;
+        session.user = {
+          ...session.user,
+          name: token.name ?? null,
+          image: token.picture ?? null,
+          email: token.email!,
+          id: token.id ?? null,
+          username: token.username ?? null,
+        };
       }
       return session;
     },
-    async jwt({ token, user, trigger }) {
-      const dbUser = await db.user.findUnique({
+    async jwt({ token, user, trigger, session }) {
+      const dbUser = await db.user.findFirst({
         where: {
-         id: user.id
+          email: token.email!,
         },
       });
+
       if (!dbUser) {
         token.id = user!.id;
         return token;
       }
 
+      if (trigger === "signUp") {
+        if (!dbUser.username) {
+          const username = await generateUniqueUsername(dbUser.email!);
+          
+          await db.user.update({
+            where: {
+              id: dbUser.id,
+            },
+            data: {
+              username,
+            },
+          });
+        }
+      }
       return {
         id: dbUser.id,
         name: dbUser.name,
-        username: dbUser.username,
         email: dbUser.email,
+        picture: dbUser.image,
+        username: dbUser.username,
       };
     },
   },
 };
+
+async function generateUniqueUsername(email: string): Promise<string> {
+  const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
+  let username = baseUsername;
+  let counter = 10;
+
+  while (counter < 100) {
+    const exists = await db.user.findUnique({
+      where: { username },
+      select: { username: true },
+    });
+
+    if (!exists) return username;
+    
+    username = `${baseUsername}_${counter}`;
+    counter++;
+  }
+
+  return username;
+}
