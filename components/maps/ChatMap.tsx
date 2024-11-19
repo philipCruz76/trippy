@@ -254,7 +254,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
   useEffect(() => {
     if (!finishedGPTInteraction || parsedActivities.length < 1) return;
 
-    setTitle("TEST AI PLANNER");
+    setTitle(dailyItinerary.title);
     setLocation(keywords.location);
     setDuration(parseInt(keywords.duration));
     setItinerary({ days: parsedActivities });

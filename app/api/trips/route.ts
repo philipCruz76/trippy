@@ -27,7 +27,7 @@ export async function POST(request: Request) {
           duration,
           username: "Test User",
           userId: "thisisatestid",
-          coverPhoto: "https://images.unsplash.com/photo-1454793147212-9e7e57e89a4f?q=80&w=2764&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          coverPhoto: "https://images.unsplash.com/photo-1684419432137-f35689916e1a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8UE9ydG98ZW58MHwxfDB8fHwy",
           overview: {
             create: {
               summary: "",
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
           },
           itinerary: {
             create: {
+              title: itinerary?.title || "",
               dailyTrip: {
                 create: itinerary?.days?.map((day, index) => ({
                   dayNumber: index + 1,

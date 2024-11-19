@@ -155,6 +155,7 @@ model Overview {
 
 model Itinerary {
   id        String      @id @default(uuid())
+  title     String      @default("")
   dailyTrip DailyTrip[]
   tripId    String      @unique
   trip      TripDetails @relation(fields: [tripId], references: [id], onDelete: Cascade)

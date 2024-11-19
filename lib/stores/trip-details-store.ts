@@ -22,6 +22,7 @@ type TripDetailsActions = {
   ) => void;
   removeActivity: (dayIndex: number, activityIndex: number) => void;
   setBatchDetails: (details: Partial<Omit<TripDetails, keyof TripDetailsActions>>) => void;
+  setItineraryTitle: (title: string) => void;
 };
 
 export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
@@ -36,6 +37,7 @@ export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
       activityTypes: [],
     },
     itinerary: {
+      title: "",
       dailyTrip: [],
       locationTrip: [],
     },
@@ -100,5 +102,12 @@ export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
         ...state,
         ...details
       })),
+
+    setItineraryTitle: (title) =>
+      set(
+        produce((state) => {
+          state.itinerary.title = title;
+        }),
+      ),
   }),
 );

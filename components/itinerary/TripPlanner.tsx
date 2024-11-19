@@ -77,6 +77,7 @@ const TripPlanner = () => {
     if (!itinerary?.days || itinerary.days.length !== duration) {
       // Initialize empty arrays for each day
       const emptyDays = Array.from({ length: duration }, () => ({
+        title: "",
         dailyActivities: [],
       }));
       setItinerary({ days: emptyDays });
@@ -215,7 +216,7 @@ const TripPlanner = () => {
               onChange={(e) => setTitle(e.target.value)}
               value={title}
               placeholder="Insert Trip Tile"
-              className="text-4xl truncate font-semibold border-none border-0 min-w-full focus:ring-0 z-2"
+              className="text-2xl truncate font-semibold border-none border-0 min-w-full focus:ring-0 z-2"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"

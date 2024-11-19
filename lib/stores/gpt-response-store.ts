@@ -17,6 +17,7 @@ type GPTResponseState = {
   setActivityCoverPhoto: (dayIndex: number, activityIndex: number, coverPhoto: string) => void;
   setGptInteractionStarted: (gptInteractionStarted: boolean) => void;
   getGptInteractionStarted: () => boolean;
+  setTripTitle: (title: string) => void;
 };
 
 export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
@@ -32,6 +33,7 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
     lng: 0,
   },
   dailyItinerary: {
+    title: "",
     summary:"",
     days:[{
       title:"",
@@ -99,5 +101,12 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
   },
   getGptInteractionStarted: () => {
     return get().gptInteractionStarted;
+  },
+  setTripTitle(title) {
+    set(
+      produce((state) => {
+        state.dailyItinerary.title = title;
+      }),
+    );
   },
 }));

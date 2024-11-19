@@ -6,6 +6,7 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
 const DailyItinerary = z.object({
+  title: z.string(),
   summary: z.string(),
   days: z.array(z.object({
     title: z.string(),
@@ -35,6 +36,7 @@ const ASSISTANT_EXAMPLE = {
   role: "assistant",
   content: `Here's an example of the expected output format:
 {
+  "title": "Historic sights of Lisbon",
   "summary": "A perfect 3-day exploration of Lisbon combining historic sites and local experiences",
   "days": [
     {
@@ -69,6 +71,7 @@ const ASSISTANT_EXAMPLE_1 = {
   role: "assistant",
   content: `Here's how to structure a day with multiple activities in close proximity:
 {
+  "title": "Discovering Porto's Food & Wine Heritage",
   "summary": "A culinary journey through Porto's historic center",
   "days": [
     {
@@ -112,6 +115,7 @@ const ASSISTANT_EXAMPLE_2 = {
   role: "assistant",
   content: `Here's how to structure multiple days with thematic grouping:
 {
+  "title":"Gaudi's Barcelona Experience",
   "summary": "Discover Barcelona through Gaudí's masterpieces and authentic local experiences",
   "days": [
     {
@@ -211,6 +215,7 @@ export default async function getDailyItinerary(
 
 
     return {
+      title: parsedResult.title,
       summary: parsedResult.summary,
       days: parsedResult.days
     };
