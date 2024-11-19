@@ -137,6 +137,7 @@ model TripDetails {
   location   String
   coverPhoto String
   duration   Int
+  published  Boolean    @default(false)
   overview   Overview?
   itinerary  Itinerary?
   createdAt  DateTime   @default(now())

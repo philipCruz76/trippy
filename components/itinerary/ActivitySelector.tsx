@@ -58,6 +58,11 @@ const ActivitySelector = ({
       activityType: "",
       durationFrom: "",
       durationTo: "",
+      location: {
+        lat: 0,
+        lng: 0
+      },
+      id: crypto.randomUUID()
     },
     mode: "onChange",
   });
@@ -127,9 +132,15 @@ const ActivitySelector = ({
 
   const onSubmit = async (data: ActivityType) => {
     try {
-      console.log(data);
+      // Log validation state
+      console.log("Form validation state:", {
+        isValid: form.formState.isValid,
+        errors: form.formState.errors,
+        values: data
+      });
+  
       setError(null);
-
+  
       const newActivity = {
         id: data.id,
         activityType: data.activityType,
@@ -140,7 +151,7 @@ const ActivitySelector = ({
         cover: data.cover,
         location: data.location,
       };
-
+  
       addActivity(newActivity, dayIndex);
       setEditField({ create: false, dayIndex: 0 });
       form.reset();
@@ -202,10 +213,31 @@ const ActivitySelector = ({
         shouldDirty: true,
         shouldTouch: true,
       });
+  
+      // Set default location if not already set
+      setValue("location", {
+        lat: 0,
+        lng: 0
+      }, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       
       setShowForm(true);
     }
   }, [selectedActivityType, setValue]);
+
+  useEffect(() => {
+    console.log('Form State Changed:', {
+      values: getValues(),
+      errors,
+      isValid,
+      dirtyFields,
+      touchedFields,
+      isDirty: form.formState.isDirty
+    });
+  }, [form.formState, getValues, errors, isValid, dirtyFields, touchedFields]);
 
   return (
     <Dialog
@@ -444,7 +476,7 @@ const ActivitySelector = ({
                 <div className="sticky bottom-0 mt-auto flex justify-end border-t border-separator bg-background py-4">
                   <button
                     type="submit"
-                    onClick={handleDebugClick}
+                    disabled={!isValid || isSubmitting}
                     className={`group group/button relative z-0 border border-transparent inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] disabled:pointer-events-none transition-colors text-center p-2 px-3 text-balance text-white text-xs min-h-[--button-sm-size] leading-[1.125] ${
                       isValid
                         ? "bg-blue-500 hover:bg-blue-600"

@@ -27,14 +27,15 @@ import MapMarker from "./MapMarker";
 type InterestMarkersProps = {
   pois: google.maps.places.Place[];
 };
+
 type MarkerProps = {
   poi: google.maps.places.Place;
   isOpen: boolean;
-  onMarkerClick: () => void;
-  onPointerEnter: (e: React.PointerEvent) => void;
-  onPointerLeave: () => void;
   dialogPosition: DialogPosition | null;
-  style?: React.CSSProperties;
+  onMarkerClick: () => void;
+  onPointerEnter: (e: PointerEvent) => void;
+  onPointerLeave: () => void;
+  style: React.CSSProperties;
 };
 
 type DialogPosition = {

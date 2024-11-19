@@ -18,7 +18,7 @@ export default async function TripDetailsPage({
 
   return (
     <Suspense fallback={<TripDetailsSkeleton />}>
-      <TripDetailsClient initialData={tripDetails} />
+      <TripDetailsClient  tripId={params.tripId} initialData={tripDetails} />
     </Suspense>
   );
 }

@@ -7,7 +7,7 @@ import {
   AccordionItem,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -32,6 +32,7 @@ import { addDays } from "date-fns";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+const MemoizedActivity = memo(Activity);
 /**
  * TripPlanner component for managing trip details and activities
  * Handles trip creation, editing, and activity management
@@ -165,8 +166,8 @@ const TripPlanner = () => {
       return;
     }
 
-    const hasActivities = itinerary.days.some(day => 
-      day.dailyActivities && day.dailyActivities.length > 0
+    const hasActivities = itinerary.days.some(
+      (day) => day.dailyActivities && day.dailyActivities.length > 0,
     );
 
     if (!hasActivities) {
@@ -193,7 +194,7 @@ const TripPlanner = () => {
       }
 
       const savedTrip = await response.json();
-      
+
       toast.success("Trip saved successfully!");
       router.push(`/explore/${savedTrip.id}`);
     } catch (error) {
@@ -249,30 +250,30 @@ const TripPlanner = () => {
           </div>
         </div>
         <div className="flex justify-end mb-4">
-            {/** TODO: Implement save trip functionality */}
-            <Button
-              onClick={handleSaveTrip}
-              className="bg-primary hover:bg-primary/90 text-white"
+          {/** TODO: Implement save trip functionality */}
+          <Button
+            onClick={handleSaveTrip}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-2"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-2"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
-              Save Trip
-            </Button>
-          </div>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            Save Trip
+          </Button>
+        </div>
         {/* Itinerary */}
         <div className="w-full h-full overflow-y-scroll">
           <div className="flex items-center gap-2 mb-2">
@@ -397,7 +398,7 @@ const TripPlanner = () => {
                                       snapshot.isDragging && "shadow-lg",
                                     )}
                                   >
-                                    <Activity
+                                    <MemoizedActivity
                                       id={activity.id}
                                       activityType={activity.activityType}
                                       cover={activity.cover}

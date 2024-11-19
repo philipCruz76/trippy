@@ -7,7 +7,7 @@ type TripItineraryProps = {
 
 const TripItinerary = ({ itinerary }: TripItineraryProps) => {
   return (
-    <div className="py-9 border-t border-separator scroll-mt-[80px]">
+    <div className="py-9 border-t border-separator scroll-mt-[112px] min-h-screen">
       <h3 className="mb-3 text-4xl font-semibold text-center leading-tight">
         Itinerary
       </h3>
