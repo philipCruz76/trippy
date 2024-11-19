@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 
 type PostBody = {
@@ -18,56 +16,59 @@ type PostBody = {
 };
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { title, location, duration, itinerary } = body as PostBody;
-
-    // Create the trip details with related records
-    const tripDetails = await db.tripDetails.create({
-      data: {
-        title,
-        location,
-        duration,
-        username: "Test User", // This should come from the session
-        userId: "thisisatestid", // This should come from the session
-        coverPhoto: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34", // This should be dynamic
-        overview: {
-          create: {
-            summary: itinerary?.comment || "",
-            activityTypes: []
-          }
-        },
-        itinerary: {
-          create: {
-            dailyTrip: {
-              create: itinerary?.days?.map((day, index) => ({
-                dayNumber: index + 1,
-                title: `Day ${index + 1}`,
-                overview: {
-                  summary: "",
-                  activityTypes: [],
-                  destinations: []
-                },
-                locations: [],
-                activities: {
-                  create: day.dailyActivities.map((activity: ActivityType) => ({
-                    activityType: activity.activityType,
-                    activityName: activity.title,
+    try {
+      const body = await request.json();
+      const { title, location, duration, itinerary } = body as PostBody;
+  
+      const tripDetails = await db.tripDetails.create({
+        data: {
+          title,
+          location,
+          duration,
+          username: "Test User",
+          userId: "thisisatestid",
+          coverPhoto: "https://images.unsplash.com/photo-1454793147212-9e7e57e89a4f?q=80&w=2764&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          overview: {
+            create: {
+              summary: "",
+              activityTypes: []
+            }
+          },
+          itinerary: {
+            create: {
+              dailyTrip: {
+                create: itinerary?.days?.map((day, index) => ({
+                  dayNumber: index + 1,
+                  title: `Day ${index + 1}`,
+                  overview: {
                     summary: "",
-                    placeId: activity.id || "",
-                    photos: []
-                  }))
-                }
-              }))
+                    activityTypes: [],
+                    destinations: []
+                  },
+                  activities: {
+                    create: day.dailyActivities.map((activity: ActivityType) => ({
+                      placeId: activity.id,
+                      activityName: activity.title,
+                      summary: "",
+                      photos: activity.cover ? [activity.cover] : [],
+                      location: {
+                        lat: activity.location.lat,
+                        lng: activity.location.lng,
+                      },
+                      activityType: activity.activityType,
+                      time: `${activity.durationFrom}-${activity.durationTo}`
+                    }))
+                  }
+                }))
+              }
             }
           }
         }
-      }
-    });
-
-    return NextResponse.json(tripDetails);
-  } catch (error) {
-    console.error("Error saving trip:", error);
-    return new NextResponse("Internal Error", { status: 500 });
+      });
+  
+      return NextResponse.json(tripDetails);
+    } catch (error) {
+      console.error('Error creating trip:', error);
+      return NextResponse.json({ error: 'Failed to create trip' }, { status: 500 });
+    }
   }
-}

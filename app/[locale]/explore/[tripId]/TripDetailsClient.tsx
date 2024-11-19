@@ -29,7 +29,17 @@ export default function TripDetailsClient({ initialData }: TripDetailsClientProp
       ref.current.scrollIntoView({ behavior: "smooth" });
     }
   };
- const placesIds = initialData.itinerary.dailyTrip.flatMap(day => day.locations.map(location => location.place_id))
+ const placesIds = initialData.itinerary.dailyTrip.reduce((ids: string[], day) => {
+    day.itinerary.forEach(itinerary => {
+      itinerary.activities.forEach(activity => {
+        if (activity.place_id) {
+          ids.push(activity.place_id);
+        }
+      });
+    });
+    return ids;
+  }, []);
+
   return (
     <div className="flex flex-col min-h-[100dvh] px-container pt-16">
       <TripBanner

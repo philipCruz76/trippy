@@ -28,6 +28,10 @@ export const ActivityValidator = z.object({
   title: z.string().min(3, "Title is required"),
   cover: z.string().optional(),
   manualInput: z.boolean().optional(),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number()
+  }),
   activityType: z.string(),
   durationFrom: z.string().optional(),
   durationTo: z.string().optional(),
@@ -97,28 +101,20 @@ export const TripDetailsValidator = z.object({
             title: z.string(),
             activities: z.array(
               z.object({
+                place_id: z.string(),
                 activityName: z.string(),
                 summary: z.string(),
                 photos: z.array(z.string()),
-                location: z.string().optional(),
+                formatted_address: z.string(),
+                location: z.object({
+                  lat: z.number(),
+                  lng: z.number()
+                }),
                 activityType: z.string().optional(),
                 time: z.string().optional(),
               }),
             ),
           }),
-        ),
-        locations: z.array(
-          z.object({
-            name: z.string(),
-            formatted_address: z.string(),
-            geometry: z.object({
-              location: z.object({
-                lat: z.number(),
-                lng: z.number()
-              })
-            }),
-            place_id: z.string(),
-          })
         ),
       }),
     ),

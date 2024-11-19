@@ -6,6 +6,14 @@ import { UnsplashImage } from "@/types/unsplash.types";
 import { useCachedState } from "@/lib/hooks/useCachedState";
 import Carousel from "@/components/ui/Carousel";
 
+
+type CarouselSlide = {
+  url: string;
+  isLoading: boolean;
+  width?: number;
+  height?: number;
+};
+
 type MarkerInfoCardProps = {
   placeData: google.maps.places.Place;
 };
@@ -16,7 +24,10 @@ type MarkerInfoCardProps = {
  */
 const MarkerInfoCard = ({ placeData }: MarkerInfoCardProps) => {
   // State management with caching
-  const [coverPhotos, setCoverPhoto] = useCachedState("infoCardPhotos", [""]);
+  const [coverPhotos, setCoverPhoto] = useCachedState<CarouselSlide[]>("infoCardPhotos", [{
+    url: "",
+    isLoading: true
+  }]);
   const [photoDetails, setPhotoDetails] = useState<UnsplashImage[]>();
 
 
@@ -39,11 +50,17 @@ const MarkerInfoCard = ({ placeData }: MarkerInfoCardProps) => {
    * Updates cover photos when place data changes
    */
   useEffect(() => {
-    const placeGallery: string[] = [""];
+    const placeGallery: CarouselSlide[] = [];
 
-    placeData.photos?.map((photo, index) => {
-      placeGallery[index] = photo.getURI();
+    placeData.photos?.forEach(photo => {
+      placeGallery.push({
+        url: photo.getURI(),
+        isLoading: false,
+        width: undefined,
+        height: undefined
+      });
     });
+    
     setCoverPhoto(placeGallery);
   }, [placeData]);
 
@@ -55,7 +72,6 @@ const MarkerInfoCard = ({ placeData }: MarkerInfoCardProps) => {
         size="custom"
         customHeight="300"
         asPhotosOnly
-        unsplashPhotos
       />
       
       {/* Place Information */}

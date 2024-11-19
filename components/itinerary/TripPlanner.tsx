@@ -403,6 +403,7 @@ const TripPlanner = () => {
                                       durationFrom={activity.durationFrom}
                                       durationTo={activity.durationTo}
                                       title={activity.title}
+                                      location={activity.location}
                                       manualInput={activity.manualInput}
                                       dayIdx={index}
                                       actIdx={actIdx}

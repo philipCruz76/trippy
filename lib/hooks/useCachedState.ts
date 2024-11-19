@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export function useCachedState(key: string, initialValue: string[]) {
+export const useCachedState = <T>(key: string, initialValue: T) => {
   // Retrieve the cached value from localStorage, or use the initial value if none exists
   const cachedValue = JSON.parse(localStorage.getItem(key) || "{}");
   const [state, setState] = useState(cachedValue || initialValue);

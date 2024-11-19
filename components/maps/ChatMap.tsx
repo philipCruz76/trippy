@@ -184,10 +184,8 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
         console.error(error);
       }
     } catch (error) {
-      if (error instanceof Error) {
-        console.warn(`Could not get places: ${error}`);
-        setError(error);
-      }
+      setError(error as Error);
+      console.error("Failed to fetch places:", error);
     }
   }, [
     placesLib,
@@ -222,11 +220,21 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
       const endTime = `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
       currentTime = endTime;
 
+      // Convert the location format to match ActivityType
+      const location = activity.location ? {
+        lat: activity.location.latitude,
+        lng: activity.location.longitude
+      } : {
+        lat: 0,
+        lng: 0
+      };
+
       return {
-        id:activity.id,
+        id: activity.id,
         title: activity.name,
         cover: activity.coverPhoto || "",
         activityType: activity.activityType || "place",
+        location: location,
         manualInput: false,
         durationFrom: startTime,
         durationTo: endTime,

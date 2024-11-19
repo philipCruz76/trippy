@@ -138,6 +138,7 @@ const ActivitySelector = ({
         durationFrom: data.durationFrom,
         durationTo: data.durationTo,
         cover: data.cover,
+        location: data.location,
       };
 
       addActivity(newActivity, dayIndex);

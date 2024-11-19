@@ -7,10 +7,15 @@ type TripCardProps = {
 };
 
 const TripCard = ({ tripData}: TripCardProps) => {
-  const tempSlides = [tripData.coverPhoto];
+  const tempSlides = [{
+    url: tripData.coverPhoto,
+    isLoading: false,
+    width: undefined,
+    height: undefined
+  }];
   return (
     <>
-      <Carousel slides={tempSlides} size="normal" link={`/explore/${tripData.id}`}/>
+      <Carousel slides={tempSlides} size="normal" href={`/explore/${tripData.id}`}/>
       <div className="flex flex-col gap-1.5 pt-4 text-sm !leading-tight @[21.375rem]:text-base">
         <h2 className="font-semibold">{tripData.title}</h2>
         <div className="flex gap-1 text-muted">

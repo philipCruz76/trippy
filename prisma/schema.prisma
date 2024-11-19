@@ -161,15 +161,13 @@ model Itinerary {
 }
 
 model DailyTrip {
-  id        String @id @default(uuid())
-  dayNumber Int
-  title     String
-  overview  Json // Stores { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
-
-  locations   Json // Stores array of Google Places
+  id          String    @id @default(uuid())
+  dayNumber   Int
+  title       String
+  overview    Json      // { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
   activities  Activity[]
   itineraryId String
-  itinerary   Itinerary  @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
@@ -178,7 +176,7 @@ model Activity {
   activityName String
   summary      String    @db.Text
   photos       String[]
-  location     String?
+  location     Json      @default("{}")
   activityType String?
   time         String?
   dailyTripId  String?

@@ -51,26 +51,34 @@ export async function GET(
       coverPhoto: tripDetails.coverPhoto,
       duration: tripDetails.duration,
       overview: {
-        summary: tripDetails.overview?.summary,
-        activityTypes: tripDetails.overview?.activityTypes || []
+        summary: tripDetails.overview?.summary ?? "",
+        activityTypes: tripDetails.overview?.activityTypes as Record<string, number>[] ?? []
       },
       itinerary: {
         dailyTrip: tripDetails.itinerary?.dailyTrip.map(day => ({
-          overview: day.overview,
-          locations: day.locations,
+          overview: {
+            summary: (day.overview as any).summary ?? "",
+            activityTypes: (day.overview as any).activityTypes ?? [],
+            destinations: (day.overview as any).destinations ?? []
+          },
           itinerary: [{
             title: day.title,
             activities: day.activities.map(activity => ({
+              place_id: activity.placeId,
               activityName: activity.activityName,
               summary: activity.summary,
-              photos: activity.photos || [],
-              location: activity.location,
+              photos: activity.photos,
+              formatted_address: (activity.location as any).formatted_address ?? "",
+              location: {
+                lat: (activity.location as any).lat ?? 0,
+                lng: (activity.location as any).lng ?? 0
+              },
               activityType: activity.activityType,
               time: activity.time
             }))
           }]
-        })),
-        locationTrip: []
+        })) ?? [],
+        locationTrip: [] // This remains empty as per the original code
       }
     };
 

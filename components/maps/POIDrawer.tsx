@@ -8,7 +8,9 @@ import {
 } from "@/components/ui/drawer";
 import Carousel from "../ui/Carousel";
 import { formatNum } from "@/lib/utils";
-import { useCachedState } from "@/lib/hooks/useCachedState";
+import { usePOIStore } from "@/lib/stores/poi-store";
+import { useState, useEffect, useCallback } from "react";
+import Image from 'next/image';
 
 type POIDrawerProps = {
   placeData: google.maps.places.Place;
@@ -16,64 +18,144 @@ type POIDrawerProps = {
 
 const POIDrawer = ({ placeData }: POIDrawerProps) => {
   const { showDrawer, setShowDrawer } = usePOIDrawerStore();
-  // Use the useCachedState hook instead of useState
-  const [coverPhotos] = useCachedState("markerPhotos", 
-    placeData.photos?.map(photo => photo.getURI()) || []
-  );
+  const { markerId, setMarkerId } = usePOIStore();
+  const [coverPhotos, setCoverPhotos] = useState<Array<{
+    url: string;
+    isLoading: boolean;
+    width?: number;
+    height?: number;
+  }>>([]);
 
+  // Preload images and get their dimensions
+  const preloadImage = useCallback(async (url: string) => {
+    return new Promise<{ url: string; width: number; height: number }>((resolve) => {
+      const img = new HTMLImageElement();
+      img.onload = () => {
+        resolve({
+          url,
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        });
+      };
+      img.src = url;
+    });
+  }, []);
+
+  // Progressive loading of photos
+  useEffect(() => {
+    if (!placeData.photos) return;
+
+    const loadPhotos = async () => {
+      // Initialize loading states
+      const initialPhotos = placeData.photos!.map(photo => ({
+        url: photo.getURI(),
+        isLoading: true
+      }));
+      setCoverPhotos(initialPhotos);
+
+      // Load photos in parallel with loading indicators
+      const photoPromises = initialPhotos.map(async (photo, index) => {
+        try {
+          const loadedPhoto = await preloadImage(photo.url);
+          setCoverPhotos(prev => prev.map((p, i) => 
+            i === index ? { ...loadedPhoto, isLoading: false } : p
+          ));
+          return loadedPhoto;
+        } catch (error) {
+          console.error(`Failed to load photo ${index}:`, error);
+          return null;
+        }
+      });
+
+      await Promise.all(photoPromises);
+    };
+
+    loadPhotos();
+  }, [placeData.photos, preloadImage]);
+
+  const isVisible = showDrawer && markerId === placeData.id;
+  
   return (
-    <>
-      <Drawer
-        direction="right"
-        open={showDrawer}
-        setBackgroundColorOnScale={false}
-      >
-        <DrawerPortal>
-          <DrawerOverlay className="fixed inset-0 z-50 bg-none" />
-          <DrawerContent
-            onInteractOutside={() => {
-              setShowDrawer(false);
-            }}
-            className="fixed border-gray-300/80 shadow-md rounded-tl-xl rounded-bl-xl right-0 bottom-0 z-50 mt-24 flex min-h-[100dvh] w-[450px] flex-col gap-4 bg-white px-4 py-6"
-          >
-            {/* POI Photo Section */}
-            <div className="h-[300px] w-full">
-              <Carousel slides={coverPhotos} size="large" asPhotosOnly />
-            </div>
+    <Drawer
+      direction="right"
+      open={isVisible}
+      onClose={() => {
+        setShowDrawer(false);
+        setMarkerId("");
+      }}
+    >
+      <DrawerPortal>
+        <DrawerOverlay className="fixed inset-0 z-50 bg-none" />
+        <DrawerContent
+          onInteractOutside={() => {
+            setShowDrawer(false);
+          }}
+          className="fixed border-gray-300/80 shadow-md rounded-tl-xl rounded-bl-xl right-0 bottom-0 z-50 mt-24 flex min-h-[100dvh] w-[450px] flex-col gap-4 bg-white px-4 py-6"
+        >
+          {/* POI Photo Section */}
+          <div className="h-[300px] w-full">
+            <Carousel
+              slides={coverPhotos.map(photo => ({
+                ...photo,
+                component: (
+                  <div className="relative w-full h-full">
+                    {photo.isLoading ? (
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                    ) : (
+                      <Image
+                        src={photo.url}
+                        alt="Place photo"
+                        fill
+                        sizes="(max-width: 450px) 100vw, 450px"
+                        className="object-cover"
+                        priority={true}
+                        loading="eager"
+                        placeholder="blur"
+                        blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
+                          '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
+                        ).toString('base64')}`}
+                      />
+                    )}
+                  </div>
+                )
+              }))}
+              size="large"
+              asPhotosOnly
+            />
+          </div>
 
-            {/* Place Data */}
-            <div className="w-full p-3 flex flex-col h-full">
-              <h2 className="flex justify-between text-left font-medium font-sans text-2xl">
-                {placeData.displayName}
-                <span className="flex flex-row items-center text-base font-normal">
-                  {placeData.rating}{" "}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="#000000"
-                    viewBox="0 0 256 256"
-                  >
-                    <path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"></path>
-                  </svg>
-                  <span className="text-sm text-gray-400">
-                    {"   ("}
-                    {!placeData.userRatingCount ? 0: formatNum(placeData.userRatingCount!)}
-                    {")"}
-                  </span>
+          {/* Place Data */}
+          <div className="w-full p-3 flex flex-col h-full">
+            <h2 className="flex justify-between text-left font-medium font-sans text-2xl">
+              {placeData.displayName}
+              <span className="flex flex-row items-center text-base font-normal">
+                {placeData.rating}{" "}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="#000000"
+                  viewBox="0 0 256 256"
+                >
+                  <path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"></path>
+                </svg>
+                <span className="text-sm text-gray-400">
+                  {"   ("}
+                  {!placeData.userRatingCount ? 0: formatNum(placeData.userRatingCount!)}
+                  {")"}
                 </span>
-              </h2>
-
-              <span className="py-4 text-sm">{placeData.editorialSummary}</span>
-
-              <span className="text-sm text-gray-400">
-                {placeData.formattedAddress}
               </span>
-            </div>
-          </DrawerContent>
-        </DrawerPortal>
-      </Drawer>
-    </>
+            </h2>
+
+            <span className="py-4 text-sm">{placeData.editorialSummary}</span>
+
+            <span className="text-sm text-gray-400">
+              {placeData.formattedAddress}
+            </span>
+          </div>
+        </DrawerContent>
+      </DrawerPortal>
+    </Drawer>
   );
 };
 
