@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
 import { ActivityType, DailyActivitesType } from "@/types/trip.types";
+import { getUnsplashImage } from "@/lib/unsplash";
 
 type PostBody = {
   title: string;
@@ -31,6 +32,12 @@ export async function POST(request: Request) {
       const body = await request.json();
       const { title, location, duration, itinerary } = body as PostBody;
   
+      const coverPhoto = await getUnsplashImage(location);
+      
+      if(coverPhoto.total === 0) {
+        return NextResponse.json({ error: 'Failed to fetch cover photo' }, { status: 500 });
+      }
+
       const tripDetails = await db.tripDetails.create({
         data: {
           title,
@@ -38,7 +45,7 @@ export async function POST(request: Request) {
           duration,
           username: session.user.username || 'Anonymous',
           userId: session.user.id,
-          coverPhoto: "https://images.unsplash.com/photo-1583295125721-766a0088cd3f?q=80&w=2564&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          coverPhoto: coverPhoto.images[0].url,
           overview: {
             create: {
               summary: "",

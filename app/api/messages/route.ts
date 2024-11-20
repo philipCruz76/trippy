@@ -13,10 +13,7 @@ export async function POST(request: Request) {
     const response = await getKeywordClassifications(text).then(
       async (result) => {
         if (result) {
-          const parsedResult = JSON.parse(result) as KeywordClassificationsType;
-
-          parsedResult.activityTypes
-          return parsedResult;
+          return result;
         }
       },
     );

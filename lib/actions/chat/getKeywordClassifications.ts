@@ -13,6 +13,16 @@ const KeywordClassifications = z.object({
 
 export type KeywordClassificationsType = z.infer<typeof KeywordClassifications>;
 
+function validateKeywordLists(data: KeywordClassificationsType, validKeywords: string): KeywordClassificationsType {
+  const keywordSet = new Set(validKeywords.split(','));
+  
+  return {
+    ...data,
+    activityTypes: data.activityTypes.filter(type => keywordSet.has(type)),
+    excludedTypes: data.excludedTypes?.filter(type => keywordSet.has(type)) || []
+  };
+}
+
 export async function getKeywordClassifications(userInput: string) {
   const PLACES_KEYWORDS = "art_gallery,museum,performing_arts_theater,amusement_center,amusement_park,aquarium,banquet_hall,bowling_alley,cultural_center,dog_park,hiking_area,historical_landmark,marina,national_park,night_club,park,tourist_attraction,zoo,american_restaurant,bakery,bar,barbecue_restaurant,brazilian_restaurant,breakfast_restaurant,brunch_restaurant,cafe,chinese_restaurant,coffee_shop,fast_food_restaurant,french_restaurant,greek_restaurant,hamburger_restaurant,ice_cream_shop,indian_restaurant,indonesian_restaurant,italian_restaurant,japanese_restaurant,korean_restaurant,lebanese_restaurant,meal_delivery,meal_takeaway,mediterranean_restaurant,mexican_restaurant,middle_eastern_restaurant,pizza_restaurant,ramen_restaurant,restaurant,sandwich_shop,seafood_restaurant,spanish_restaurant,steak_house,sushi_restaurant,thai_restaurant,turkish_restaurant,vegan_restaurant,vegetarian_restaurant,vietnamese_restaurant,spa,book_store,clothing_store,department_store,gift_shop,jewelry_store,market,shoe_store,shopping_mall,sporting_goods_store,store,athletic_field,fitness_center,golf_course,playground,ski_resort,stadium,swimming_pool";
   const POPULAR_DESTINATIONS = "London,Edinburgh,Manchester,Liverpool,Bath,Cambridge,Oxford,Prague,Brno,Karlovy Vary,Plzeň,Rome,Florence,Venice,Milan,Bologna,Naples,Turin,Palermo,Madrid,Barcelona,Seville,Valencia,Granada,Bilbao,Malaga,Paris,Nice,Marseille,Lyon,Bordeaux,Toulouse,Athens,Thessaloniki,Heraklion,Rhodes,Santorini,Oslo,Bergen,Trondheim,Warsaw,Kraków,Gdańsk,Wrocław,Stockholm,Gothenburg,Malmö,Uppsala,Vienna,Salzburg,Innsbruck,Graz,Brussels,Bruges,Ghent,Antwerp,Dubrovnik,Split,Zagreb,Zadar,Copenhagen,Aarhus,Odense,Helsinki,Turku,Rovaniemi,Berlin,Munich,Frankfurt,Hamburg,Cologne,Dresden,Leipzig,Budapest,Debrecen,Szeged,Reykjavik,Akureyri,Selfoss,Dublin,Cork,Galway,Lisbon,Porto,Faro,Lagos,Albufeira,Coimbra,Amsterdam,Rotterdam,Utrecht,The Hague,Zurich,Geneva,Lucerne,Interlaken";
@@ -55,7 +65,9 @@ export async function getKeywordClassifications(userInput: string) {
       response_format: zodResponseFormat(KeywordClassifications, "classification"),
     });
 
-    return response.choices[0].message.content?.trim() ?? null;
+    const result = response.choices[0].message.content?.trim() ?? null;
+    
+    return result ? validateKeywordLists(JSON.parse(result), PLACES_KEYWORDS) : null;
   } catch (error) {
     console.error("AI_KEYWORD_CLASSIFICATION_ERROR:", error);
     throw new Error("Failed to classify keywords");
