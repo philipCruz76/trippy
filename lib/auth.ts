@@ -3,12 +3,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import type { Adapter } from "next-auth/adapters";
 import db from "@/lib/db";
+import { generateUniqueUsername } from "./utils/username-generator";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as Adapter,
   secret: process.env.NEXTAUTH_SECRET!,
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60,
   },
   providers: [
     Google({
@@ -68,22 +70,3 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-async function generateUniqueUsername(email: string): Promise<string> {
-  const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
-  let username = baseUsername;
-  let counter = 10;
-
-  while (counter < 100) {
-    const exists = await db.user.findUnique({
-      where: { username },
-      select: { username: true },
-    });
-
-    if (!exists) return username;
-    
-    username = `${baseUsername}_${counter}`;
-    counter++;
-  }
-
-  return username;
-}

@@ -10,17 +10,20 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useSignInModalStore } from "@/lib/stores/signin-modal-store";
+import { useSession } from "next-auth/react";
 
 type MenuDrawerProps = {};
 
 const MenuDrawer = ({}: MenuDrawerProps) => {
   const { showNav, setShowNav } = useNavDrawerStore();
   const { setShowModal } = useSignInModalStore();
+  const { status } = useSession();
+
   return (
     <>
       <Drawer direction="left" open={showNav} dismissible={false}>
         <DrawerPortal>
-          <DrawerOverlay className="fixed inset-0 z-50 translate-x-0 bg-black backdrop-blur-sm bg-opacity-20" />
+          <DrawerOverlay className="fixed inset-0 z-50 translate-x-0 bg-black backdrop-blur-sm bg-opacity-20" onClick={() => setShowNav(false)} />
           <DrawerContent
             onInteractOutside={() => {
               setShowNav(false);
@@ -94,16 +97,21 @@ const MenuDrawer = ({}: MenuDrawerProps) => {
                 />
                 <span className="font-sans font-medium">Create Trip</span>
               </Link>
-              {/* Sign In */}
-              <button
-                onClick={() => {
-                  setShowNav(false);
-                  setShowModal(true);
-                }}
-                className="w-full h-[40px] border border-[#251F1F] text-[#251F1F] hover:bg-black hover:border-black hover:text-white hover:scale-110 transform ease-in-out duration-300 rounded-2xl bg-transparent"
-              >
-                Sign In
-              </button>
+              {/* Conditionally render Sign In button */}
+              {status === "unauthenticated" && (
+                <button
+                  onClick={() => {
+                    setShowNav(false);
+                    setShowModal(true);
+                  }}
+                  className="mt-auto w-full h-[40px] border border-[#251F1F] text-[#251F1F] 
+                    hover:bg-black hover:border-black hover:text-white 
+                    hover:scale-105 transform ease-in-out duration-300 
+                    rounded-2xl bg-transparent active:scale-95"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </DrawerContent>
         </DrawerPortal>

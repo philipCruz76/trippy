@@ -1,6 +1,5 @@
 import {
   getKeywordClassifications,
-  KeywordClassificationsType,
 } from "@/lib/actions/chat/getKeywordClassifications";
 import { getLatLng, LatLngResult } from "@/lib/actions/chat/getLatLng";
 import { NextResponse } from "next/server";

@@ -64,6 +64,7 @@ const TripPlanner = () => {
     from: new Date(),
     to: addDays(new Date(), duration - 1),
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   const { tripActivities, setTripActivities, moveActivity } =
     useTripEditorStore();
@@ -160,6 +161,9 @@ const TripPlanner = () => {
   };
 
   const handleSaveTrip = async () => {
+    // Prevent multiple clicks while validation is happening
+    if (isSaving) return;
+
     // Check if there are days and at least one activity
     if (!itinerary?.days || itinerary.days.length === 0) {
       toast.error("Please add at least one day to your trip");
@@ -174,6 +178,8 @@ const TripPlanner = () => {
       toast.error("Please add at least one activity to your trip");
       return;
     }
+
+    setIsSaving(true); // Start loading
 
     try {
       const response = await fetch("/api/trips", {
@@ -196,10 +202,14 @@ const TripPlanner = () => {
       const savedTrip = await response.json();
 
       toast.success("Trip saved successfully!");
+      toast.success("Redirecting to trip...");
       router.push(`/explore/${savedTrip.id}`);
     } catch (error) {
       toast.error("Failed to save trip. Please try again.");
+      setIsSaving(false); // Only reset if there's an error
     }
+    // Removed the finally clause - we only want to reset isSaving on error
+    // On success, we keep the button disabled as we're redirecting anyway
   };
 
   return (
@@ -254,24 +264,53 @@ const TripPlanner = () => {
           <Button
             onClick={handleSaveTrip}
             className="bg-primary hover:bg-primary/90 text-white"
+            disabled={isSaving}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            Save Trip
+            {isSaving ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-2"
+                >
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Save Trip
+              </>
+            )}
           </Button>
         </div>
         {/* Itinerary */}

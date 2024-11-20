@@ -28,14 +28,19 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
 
   // Preload images and get their dimensions
   const preloadImage = useCallback(async (url: string) => {
+    // Use a cache to avoid reloading the same images
+    const cache = new Map<string, { width: number; height: number }>();
+    
+    if (cache.has(url)) {
+      return { url, ...cache.get(url)! };
+    }
+
     return new Promise<{ url: string; width: number; height: number }>((resolve) => {
-      const img = new HTMLImageElement();
+      const img = document.createElement('img');
       img.onload = () => {
-        resolve({
-          url,
-          width: img.naturalWidth,
-          height: img.naturalHeight
-        });
+        const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
+        cache.set(url, dimensions);
+        resolve({ url, ...dimensions });
       };
       img.src = url;
     });

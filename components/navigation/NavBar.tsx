@@ -19,7 +19,7 @@ import { signOut } from "next-auth/react";
 const MenuDrawer = lazy(() => import("@/components/navigation/MenuDrawer"));
 
 const NavBar = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { showNav, setShowNav } = useNavDrawerStore();
   const { showModal, setShowModal } = useSignInModalStore();
   const { showEditor, setShowEditor } = useTripEditorStore();
@@ -48,14 +48,16 @@ const NavBar = () => {
         "fixed justify-between px-4 inset-x-0 z-10 flex h-16 items-center transition-colors duration-500",
         hasScrolledDown && "bg-background/80 backdrop-blur-md",
       )}
+      role="navigation"
+      aria-label="Main navigation"
     >
       {/* Hamburger Menu */}
       <div className="px-2">
         <button
           className="group flex items-center py-2 hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full w-[44px] h-[44px] justify-center transition duration-200 hover:scale-110 ease-in-out"
-          onClick={() => {
-            setShowNav(!showNav);
-          }}
+          onClick={() => setShowNav(!showNav)}
+          aria-expanded={showNav}
+          aria-label="Toggle navigation menu"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -78,19 +80,32 @@ const NavBar = () => {
       </div>
       {/* Nav Links */}
 
-      <ul className="flex flex-row gap-4 items-center justify-center text-center text-sm">
-        <li className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer">
-          <Link href={"/explore"}>Start Exploring</Link>
+      <ul className="hidden tablet:flex flex-row gap-4 items-center justify-center text-sm" role="menubar">
+        <li role="none">
+          <Link 
+            href="/explore" 
+            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
+            role="menuitem"
+          >
+            Start Exploring
+          </Link>
         </li>
-        <li className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer">
-          <Link href={"/create"}>Creator Program</Link>
+        <li role="none">
+          <Link 
+            href="/create"
+            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
+            role="menuitem"
+          >
+            Creator Program
+          </Link>
         </li>
       </ul>
 
       {/* Website Logo */}
       <Link
         href={"/"}
-        className="flex items-center place-content-center justify-center min-w-[700px] h-[40px]"
+        className="flex items-center place-content-center justify-center tablet:min-w-[200px] desktop:min-w-[700px] h-[40px]"
+        aria-label="Home"
       >
         <Image
           className="hover:scale-110 transform ease-in-out duration-300"
@@ -100,52 +115,54 @@ const NavBar = () => {
           alt="Trippy Logo"
         />
       </Link>
-      {tripActivities && tripActivities.length > 0 ? (
+      {tripActivities && tripActivities.length > 0 && (
         <button
-          onClick={() => {
-            setShowEditor(!showEditor);
-          }}
-          className="group group/button relative z-0 border inline-flex justify-center  items-center rounded-full font-medium outline-none gap-[.3em] disabled:pointer-events-none disabled:opacity-50 transition-colors text-center py-[.25em] text-balance bg-background text-foreground border-input data-[state=open]:border-black data-[state=active]:border-black hover:border-black text-sm min-h-[32px] px-4 leading-[1.125]"
+          onClick={() => setShowEditor(!showEditor)}
+          className="group relative z-0 border inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] transition-colors text-center py-[.25em] text-balance bg-background text-foreground border-input hover:border-black text-sm min-h-[32px] px-4 leading-[1.125]"
+          aria-label={`Open trip editor with ${tripActivities.reduce((acc, day) => acc + day.length, 0)} activities`}
         >
-          <span className="flex flex-row truncate  gap-1 items-center justify-center font-semibold">
-            <Image src={"/icons/trip.svg"} height={20} width={20}  alt="Trip Icon" className="w-[20px] h-[20px]"/>
+          <span className="flex flex-row truncate gap-1 items-center justify-center font-semibold">
+            <Image src={"/icons/trip.svg"} height={20} width={20} alt="" className="w-[20px] h-[20px]" />
             Trip
-            <span className="text-xs text-white font-light rounded-full bg-sky-500  p-[4px]">
+            <span className="text-xs text-white font-semibold rounded-full bg-sky-500 px-2 py-1 min-w-[20px]">
               {tripActivities.reduce((acc, day) => acc + day.length, 0)}
             </span>
           </span>
         </button>
-      ) : null}
-
-      {session ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer flex items-center gap-2">
-            <Image
-              src={session.user?.image || "/default-avatar.png"}
-              alt="Profile"
-              width={24}
-              height={24}
-              className="rounded-full"
-            />
-            <span>{session.user?.name}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <>
-          <button
-            onClick={() => setShowModal(!showModal)}
-            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer"
-          >
-            Sign In
-          </button>
-          {showModal ? <SignInModal /> : null}
-        </>
       )}
+
+      {/* Auth Section */}
+      <div className="flex items-center">
+        { session ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer flex items-center gap-2" aria-label="User menu">
+              <Image
+                src={session.user?.image || "/default-avatar.png"}
+                alt=""
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+              <span className="hidden sm:inline">{session.user?.name}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onSelect={() => signOut({ callbackUrl: '/' })} className="cursor-pointer">
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowModal(!showModal)}
+              className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer transition-colors duration-200"
+            >
+              Sign In
+            </button>
+            {showModal ? <SignInModal /> : null}
+          </>
+        )}
+      </div>
     </nav>
   );
 };

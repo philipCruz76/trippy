@@ -39,6 +39,9 @@ export async function getUnsplashImage(prompt: string) {
         query: prompt,
         page: 1,
         perPage: 10,
+        orientation: "portrait",
+        orderBy: "editorial",
+        plus:"none",
       })
       .then((result) => {
         switch (result.type) {

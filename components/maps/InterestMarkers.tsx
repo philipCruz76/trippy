@@ -55,7 +55,7 @@ const DIALOG_DIMENSIONS = {
 
 const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
   const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(null);
-  const { markerId, hoveredMarkerId, setHoveredMarkerId } = usePOIStore();
+  const { markerId, hoveredMarkerId, setHoveredMarkerId, setMarkerId } = usePOIStore();
   const { showDrawer, setShowDrawer } = usePOIDrawerStore();
   const timerRef = useRef<NodeJS.Timeout>();
   const positionRef = useRef<DialogPosition | null>(null);
@@ -162,6 +162,7 @@ const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
             dialogPosition={dialogPosition}
             onMarkerClick={() => {
               setHoveredMarkerId(poi.id!);
+              setMarkerId(poi.id!);
               setShowDrawer(true);
             }}
             onPointerEnter={(e) => handlePointerEnter(e, poi)}

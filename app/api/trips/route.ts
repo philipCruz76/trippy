@@ -4,19 +4,8 @@ import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
 import { ActivityType, DailyActivitesType } from "@/types/trip.types";
 import { getUnsplashImage } from "@/lib/unsplash";
+import { tripValidationSchema } from "@/lib/validations/trips";
 
-type PostBody = {
-  title: string;
-  location: string;
-  duration: number;
-  itinerary:
-    | {
-        title?: string;
-        days?: DailyActivitesType[];
-        comment?: string;
-      }
-    | undefined;
-};
 
 export async function POST(request: Request) {
     try {
@@ -30,18 +19,35 @@ export async function POST(request: Request) {
       }
 
       const body = await request.json();
-      const { title, location, duration, itinerary } = body as PostBody;
-  
-      const coverPhoto = await getUnsplashImage(location);
+      
+      // Validate input data
+      const validationResult = tripValidationSchema.safeParse(body);
+      if (!validationResult.success) {
+        return NextResponse.json(
+          { error: validationResult.error.errors },
+          { status: 400 }
+        );
+      }
+
+      const { title, location, duration, itinerary } = validationResult.data;
+
+      // Sanitize input data
+      const sanitizedTitle = title.trim();
+      const sanitizedLocation = location.trim();
+
+      const coverPhoto = await getUnsplashImage(sanitizedLocation);
       
       if(coverPhoto.total === 0) {
-        return NextResponse.json({ error: 'Failed to fetch cover photo' }, { status: 500 });
+        return NextResponse.json(
+          { error: 'Failed to fetch cover photo' },
+          { status: 500 }
+        );
       }
 
       const tripDetails = await db.tripDetails.create({
         data: {
-          title,
-          location,
+          title: sanitizedTitle,
+          location: sanitizedLocation,
           duration,
           username: session.user.username || 'Anonymous',
           userId: session.user.id,
@@ -56,7 +62,7 @@ export async function POST(request: Request) {
             create: {
               title: itinerary?.title || "",
               dailyTrip: {
-                create: itinerary?.days?.map((day, index) => ({
+                create: itinerary?.days?.map((day: DailyActivitesType, index: number) => ({
                   dayNumber: index + 1,
                   title: `Day ${index + 1}`,
                   overview: {
@@ -88,6 +94,9 @@ export async function POST(request: Request) {
       return NextResponse.json(tripDetails);
     } catch (error) {
       console.error('Error creating trip:', error);
-      return NextResponse.json({ error: 'Failed to create trip' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to create trip' },
+        { status: 500 }
+      );
     }
   }
