@@ -130,7 +130,7 @@ const NavBar = () => {
             <span>{session.user?.name}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -55,10 +55,10 @@ const DIALOG_DIMENSIONS = {
 
 const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
   const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(null);
-  const { markerId, setMarkerId } = usePOIStore();
+  const { markerId, hoveredMarkerId, setHoveredMarkerId } = usePOIStore();
   const { showDrawer, setShowDrawer } = usePOIDrawerStore();
   const timerRef = useRef<NodeJS.Timeout>();
-  const [hoveredMarkerId, setHoveredMarkerId] = useState<string>("");
+  const positionRef = useRef<DialogPosition | null>(null);
 
   const calculateDialogPosition = useCallback((rect: DOMRect) => {
     if (typeof window === "undefined") return null;
@@ -94,19 +94,29 @@ const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
     }
 
     // Vertical positioning
-    const idealTop = markerCenterY - dialogHeight / 2;
+    // First, try to center vertically
+    let idealTop = markerCenterY - dialogHeight / 2;
 
-    // Check if dialog would overflow top or bottom
+    // Ensure dialog stays within viewport bounds
     if (idealTop < padding) {
       // Too close to top, position below marker
-      position.top = rect.bottom + padding;
+      position.top = Math.min(
+        rect.bottom + padding,
+        viewportHeight - dialogHeight - padding
+      );
     } else if (idealTop + dialogHeight > viewportHeight - padding) {
       // Too close to bottom, position above marker
-      position.top = rect.top - dialogHeight - padding;
+      position.top = Math.max(
+        rect.top - dialogHeight - padding,
+        padding
+      );
     } else {
       // Centered position works fine
       position.top = idealTop;
     }
+
+    // Final safety check to ensure dialog is always visible
+    position.top = Math.max(padding, Math.min(position.top, viewportHeight - dialogHeight - padding));
 
     return position;
   }, []);
@@ -117,21 +127,27 @@ const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
         clearTimeout(timerRef.current);
       }
 
-      const markerElement = e.currentTarget as HTMLElement;
-      const markerRect = markerElement.getBoundingClientRect();
-      const position = calculateDialogPosition(markerRect);
-      setDialogPosition(position);
+      // Only calculate position if we don't already have one
+      if (!positionRef.current) {
+        const markerElement = e.currentTarget as HTMLElement;
+        const markerRect = markerElement.getBoundingClientRect();
+        const position = calculateDialogPosition(markerRect);
+        positionRef.current = position;
+        setDialogPosition(position);
+      }
+      
       setHoveredMarkerId(poi.id!);
     },
-    [calculateDialogPosition],
+    [calculateDialogPosition, setHoveredMarkerId],
   );
 
-  const handlePointerLeave = () => {
+  const handlePointerLeave = useCallback(() => {
     timerRef.current = setTimeout(() => {
       setHoveredMarkerId("");
       setDialogPosition(null);
+      positionRef.current = null;  // Reset the position ref
     }, 400);
-  };
+  }, [setHoveredMarkerId]);
 
   return (
     <>
@@ -145,7 +161,7 @@ const InterestMarkers = memo(({ pois }: InterestMarkersProps) => {
             isOpen={isDialogOpen}
             dialogPosition={dialogPosition}
             onMarkerClick={() => {
-              setMarkerId(poi.id!);
+              setHoveredMarkerId(poi.id!);
               setShowDrawer(true);
             }}
             onPointerEnter={(e) => handlePointerEnter(e, poi)}

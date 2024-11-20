@@ -12,7 +12,7 @@ type BodyProps = {
 };
 
 const Body = ({ keywords, location, itinerary }: BodyProps) => {
-  const { setMarkerId } = usePOIStore();
+  const { setMarkerId, setHoveredMarkerId } = usePOIStore();
 
   const activityNames = useCallback((day: DailyItineraryType["days"][0]) => 
     day.activities.map((activity) => activity.name),
@@ -26,8 +26,18 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
     return new RegExp(`\\b(${safeNames.join("|")})\\b`, "gi");
   }, []);
 
-  const handlePointerEnter = useCallback((id: string) => () => setMarkerId(id), [setMarkerId]);
-  const handlePointerLeave = useCallback(() => setMarkerId(""), [setMarkerId]);
+  const handlePointerEnter = useCallback(
+    (id: string) => () => {
+      setMarkerId(id);
+      setHoveredMarkerId(id);
+    },
+    [setMarkerId, setHoveredMarkerId]
+  );
+
+  const handlePointerLeave = useCallback(() => {
+    setMarkerId("");
+    setHoveredMarkerId("");
+  }, [setMarkerId, setHoveredMarkerId]);
 
   const renderDay = useCallback((day: DailyItineraryType["days"][0]) => {
     const regex = createSafeRegex(activityNames(day));
