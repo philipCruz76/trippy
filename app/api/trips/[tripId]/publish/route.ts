@@ -7,6 +7,7 @@ export async function PATCH(
 ) {
   try {
     const tripId = params.tripId;
+    const { title, coverPhoto } = await request.json();
 
     if (!tripId) {
       return NextResponse.json(
@@ -21,6 +22,8 @@ export async function PATCH(
       },
       data: {
         published: true,
+        title: title,
+        coverPhoto: coverPhoto,
       },
     });
 

@@ -17,11 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { Globe2, Loader2 } from "lucide-react";
+import { Globe2, Loader2, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 
 type TripDetailsClientProps = {
   tripId: string;
@@ -35,6 +36,8 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeSection, setActiveSection] = useState("Overview");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const session = useSession();
 
@@ -71,8 +74,19 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
   const handlePublish = async () => {
     try {
       setIsPublishing(true);
+      
+      // Get latest values from tripEditorStore
+      const { title: updatedTitle, coverPhoto: updatedCoverPhoto } = useTripEditorStore.getState();
+      
       const response = await fetch(`/api/trips/${tripId}/publish`, {
         method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: updatedTitle || initialData.title, // Fallback to initial title if no update
+          coverPhoto: updatedCoverPhoto || initialData.coverPhoto, // Fallback to initial coverPhoto if no update
+        }),
       });
 
       if (!response.ok) {
@@ -98,6 +112,29 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
       )
     );
   }, [initialData]);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/trips/${tripId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete trip');
+      }
+
+      toast.success('Trip deleted successfully!');
+      router.push('/explore'); // Redirect to explore page after deletion
+    } catch (error) {
+      toast.error('Failed to delete trip');
+      console.error('Error deleting trip:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
 
   useEffect(() => {
     let lastKnownScrollPosition = 0;
@@ -145,62 +182,134 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
           duration={initialData.duration}
           isOwner={session.data?.user.username === initialData.username}
         />
-        <div className="absolute top-4 right-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <Button 
-                    onClick={() => setShowPublishDialog(true)}
-                    disabled={!isPublishable}
-                    className={cn(
-                      "w-[160px] px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 shadow-sm hover:shadow-md",
-                      "flex items-center gap-2",
-                      isPublishable 
-                        ? "bg-primary hover:bg-primary/90 text-white"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    )}
-                  >
-                    {isPublishing ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          {session.data?.user.username === initialData.username && (
+            <>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => setShowPublishDialog(true)}
+                      disabled={!isPublishable}
+                      className={cn(
+                        "h-10 px-6 text-sm font-medium rounded-full transition-all duration-200",
+                        "flex items-center gap-2",
+                        isPublishable 
+                          ? "bg-white hover:bg-primary text-foreground hover:text-white border border-input"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                      )}
+                    >
+                      {isPublishing ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Globe2 className="w-4 h-4" />
+                      )}
+                      {isPublishing ? 'Publishing...' : 'Publish Trip'}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {!isPublishable ? (
+                      <p>Please add a title, location and at least one activity to publish your trip</p>
                     ) : (
-                      <Globe2 className="w-4 h-4" />
+                      <p>Make your trip visible to other users</p>
                     )}
-                    {isPublishing ? 'Publishing...' : 'Publish Trip'}
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                {!isPublishable && (
-                  <p>Please add a title, location and at least one activity to publish your trip</p>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => setShowDeleteDialog(true)}
+                      variant="ghost"
+                      className="h-10 w-10 rounded-full bg-white hover:bg-destructive hover:text-white transition-colors"
+                    >
+                      <Trash2 className="min-w-5 min-h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete trip</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
+          )}
         </div>
       </div>
 
       <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
-        <DialogContent>
+        <DialogContent className="mobile:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Publish Trip</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-semibold">Publish Trip</DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
               Are you sure you want to publish this trip? Published trips will be visible to all users.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex gap-2 mt-4">
+          <DialogFooter className="flex gap-2 mt-6">
             <Button
               variant="outline"
               onClick={() => setShowPublishDialog(false)}
               disabled={isPublishing}
+              className="flex-1 rounded-full h-10"
             >
               Cancel
             </Button>
             <Button
               onClick={handlePublish}
               disabled={isPublishing}
+              className="flex-1 rounded-full h-10 bg-primary hover:bg-primary/90"
             >
-              {isPublishing ? 'Publishing...' : 'Publish'}
+              {isPublishing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Globe2 className="w-4 h-4 mr-2" />
+                  Publish
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="mobile:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Delete Trip</DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
+              Are you sure you want to delete this trip? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-5 h-5" />
+                  Delete
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

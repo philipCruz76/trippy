@@ -91,3 +91,34 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { tripId: string } }
+) {
+  try {
+    const tripId = params.tripId;
+
+    if (!tripId) {
+      return NextResponse.json(
+        { error: "Trip ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the trip from the database
+    await db.tripDetails.delete({
+      where: {
+        id: tripId,
+      },
+    });
+
+    return NextResponse.json({ message: "Trip deleted successfully" });
+  } catch (error) {
+    console.error('Error deleting trip:', error);
+    return NextResponse.json(
+      { error: "Failed to delete trip" },
+      { status: 500 }
+    );
+  }
+}

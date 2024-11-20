@@ -8,7 +8,7 @@ import {
   } from "@/components/ui/dialog";
   import { Button } from "@/components/ui/button";
   import { Input } from "@/components/ui/input";
-  import { useEffect, useState } from "react";
+  import { useState, useEffect } from "react";
   import Image from "next/image";
   
   export type EditDialogProps = {
@@ -29,12 +29,12 @@ import {
     const [value, setValue] = useState(initialValue);
     const [previewError, setPreviewError] = useState(false);
   
-    // Reset value when dialog opens with new initialValue
     useEffect(() => {
       if (open) {
         setValue(initialValue);
+        setPreviewError(false);
       }
-    }, [open, initialValue]);
+    }, [initialValue, open, type]);
   
     const dialogConfig = {
       title: {
@@ -57,12 +57,14 @@ import {
       if (config.validateInput(value)) {
         onUpdate(value);
         onOpenChange(false);
+        setValue(initialValue);
+        setPreviewError(false);
       }
     };
   
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="rounded-2xl border-none bg-white/80 backdrop-blur-xl">
+        <DialogContent className="rounded-2xl border-none bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">{config.title}</DialogTitle>
             <DialogDescription className="text-neutral-600">
