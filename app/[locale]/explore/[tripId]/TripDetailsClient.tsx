@@ -20,7 +20,8 @@ import toast from "react-hot-toast";
 import { Globe2, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type TripDetailsClientProps = {
   tripId: string;
@@ -34,6 +35,8 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeSection, setActiveSection] = useState("Overview");
+  const router = useRouter();
+  const session = useSession();
 
   const scrollIntoView = (scrollTo: string) => {
     const refMap = {
@@ -140,6 +143,7 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
           location={initialData.location}
           username={initialData.username}
           duration={initialData.duration}
+          isOwner={session.data?.user.username === initialData.username}
         />
         <div className="absolute top-4 right-4">
           <TooltipProvider>

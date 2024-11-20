@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { toast } from "react-hot-toast";
 
 type TripNavigationProps = {
   onNavigate: (section: string) => void;
@@ -17,7 +16,6 @@ const TripNavigation = ({ onNavigate, activeSection }: TripNavigationProps) => {
             <li key={section}>
               <button
                 onClick={() => {
-                  toast.success(`Navigating to ${section}`);
                   onNavigate(section)
                 }}
                 className={cn(

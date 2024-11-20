@@ -6,6 +6,8 @@ type TripEditorSate = {
   showEditor: boolean;
   showWizard: boolean;
   tripActivities: ActivityType[][];
+  coverPhoto: string;
+  title: string;
   setShowEditor: (showEditor: boolean) => void;
   setShowWizard: (showWizard: boolean) => void;
   setTripActivities: (tripActivities: ActivityType[][]) => void;
@@ -22,12 +24,16 @@ type TripEditorSate = {
     fromActivityIndex: number,
     toActivityIndex: number,
   ) => void;
+  setCoverPhoto: (url: string) => void;
+  setTitle: (title: string) => void;
 };
 
 export const useTripEditorStore = create<TripEditorSate>()((set) => ({
   showEditor: false,
   showWizard: false,
   tripActivities: [],
+  coverPhoto: '',
+  title: '',
 
   setShowEditor: (showEditor: boolean) => set({ showEditor }),
   setShowWizard: (showWizard: boolean) => set({ showWizard }),
@@ -122,4 +128,7 @@ export const useTripEditorStore = create<TripEditorSate>()((set) => ({
         );
       }),
     ),
+
+  setCoverPhoto: (url: string) => set({ coverPhoto: url }),
+  setTitle: (title: string) => set({ title: title }),
 }));
