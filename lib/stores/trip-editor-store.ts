@@ -8,6 +8,8 @@ type TripEditorSate = {
   tripActivities: ActivityType[][];
   coverPhoto: string;
   title: string;
+  coverPhotoCreditName: string;
+  coverPhotoCreditLink: string;
   setShowEditor: (showEditor: boolean) => void;
   setShowWizard: (showWizard: boolean) => void;
   setTripActivities: (tripActivities: ActivityType[][]) => void;
@@ -24,7 +26,7 @@ type TripEditorSate = {
     fromActivityIndex: number,
     toActivityIndex: number,
   ) => void;
-  setCoverPhoto: (url: string) => void;
+  setCoverPhoto: (url: string, creditName?: string, creditLink?: string) => void;
   setTitle: (title: string) => void;
 };
 
@@ -34,6 +36,8 @@ export const useTripEditorStore = create<TripEditorSate>()((set) => ({
   tripActivities: [],
   coverPhoto: '',
   title: '',
+  coverPhotoCreditName: '',
+  coverPhotoCreditLink: '',
 
   setShowEditor: (showEditor: boolean) => set({ showEditor }),
   setShowWizard: (showWizard: boolean) => set({ showWizard }),
@@ -129,6 +133,10 @@ export const useTripEditorStore = create<TripEditorSate>()((set) => ({
       }),
     ),
 
-  setCoverPhoto: (url: string) => set({ coverPhoto: url }),
+  setCoverPhoto: (url: string, creditName?: string, creditLink?: string) => set({
+    coverPhoto: url,
+    coverPhotoCreditName: creditName || '',
+    coverPhotoCreditLink: creditLink || ''
+  }),
   setTitle: (title: string) => set({ title: title }),
 }));

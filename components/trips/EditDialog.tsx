@@ -16,7 +16,7 @@ import {
     onOpenChange: (open: boolean) => void;
     type: 'title' | 'image';
     initialValue: string;
-    onUpdate: (newValue: string) => void;
+    onUpdate: (newValue: string, creditName?: string, creditLink?: string) => void;
   };
   
   export const EditDialog = ({ 
@@ -27,11 +27,15 @@ import {
     onUpdate 
   }: EditDialogProps) => {
     const [value, setValue] = useState(initialValue);
+    const [creditName, setCreditName] = useState('');
+    const [creditLink, setCreditLink] = useState('');
     const [previewError, setPreviewError] = useState(false);
   
     useEffect(() => {
       if (open) {
         setValue(initialValue);
+        setCreditName('');
+        setCreditLink('');
         setPreviewError(false);
       }
     }, [initialValue, open, type]);
@@ -55,9 +59,11 @@ import {
   
     const handleSubmit = () => {
       if (config.validateInput(value)) {
-        onUpdate(value);
+        onUpdate(value, creditName, creditLink);
         onOpenChange(false);
         setValue(initialValue);
+        setCreditName('');
+        setCreditLink('');
         setPreviewError(false);
       }
     };
@@ -82,38 +88,44 @@ import {
               }}
             />
   
-            {type === 'image' && value && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                <Image
-                  src={value}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                  onError={() => setPreviewError(true)}
+            {type === 'image' && (
+              <>
+                <Input
+                  placeholder="Photo credit name (optional)"
+                  value={creditName}
+                  onChange={(e) => setCreditName(e.target.value)}
                 />
-                {previewError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500">
-                    Invalid image URL
+                <Input
+                  placeholder="Photo credit link (optional)"
+                  value={creditLink}
+                  onChange={(e) => setCreditLink(e.target.value)}
+                />
+                {value && (
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                    <Image
+                      src={value}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                      onError={() => setPreviewError(true)}
+                    />
+                    {previewError && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500">
+                        Invalid image URL
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </>
             )}
           </div>
   
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 sm:flex-none rounded-xl"
-            >
-              Cancel
-            </Button>
+          <DialogFooter>
             <Button
               onClick={handleSubmit}
               disabled={!config.validateInput(value)}
-              className="flex-1 sm:flex-none rounded-xl bg-black hover:bg-black/90"
             >
-              Update {type === 'title' ? 'Title' : 'Image'}
+              Save changes
             </Button>
           </DialogFooter>
         </DialogContent>

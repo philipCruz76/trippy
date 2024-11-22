@@ -77,6 +77,8 @@ export const TripDetailsValidator = z.object({
   title: z.string(),
   username: z.string(),
   coverPhoto: z.string(),
+  photoCreditName: z.string().optional(),
+  photoCreditLink: z.string().optional(),
   location: z.string(),
   duration: z.number(),
   overview: z.object({

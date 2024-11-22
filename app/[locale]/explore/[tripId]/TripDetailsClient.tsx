@@ -76,7 +76,12 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
       setIsPublishing(true);
       
       // Get latest values from tripEditorStore
-      const { title: updatedTitle, coverPhoto: updatedCoverPhoto } = useTripEditorStore.getState();
+      const { 
+        title: updatedTitle, 
+        coverPhoto: updatedCoverPhoto,
+        coverPhotoCreditName,
+        coverPhotoCreditLink 
+      } = useTripEditorStore.getState();
       
       const response = await fetch(`/api/trips/${tripId}/publish`, {
         method: 'PATCH',
@@ -84,8 +89,10 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: updatedTitle || initialData.title, // Fallback to initial title if no update
-          coverPhoto: updatedCoverPhoto || initialData.coverPhoto, // Fallback to initial coverPhoto if no update
+          title: updatedTitle || initialData.title,
+          coverPhoto: updatedCoverPhoto || initialData.coverPhoto,
+          photoCreditName: coverPhotoCreditName || initialData.photoCreditName,
+          photoCreditLink: coverPhotoCreditLink || initialData.photoCreditLink,
         }),
       });
 

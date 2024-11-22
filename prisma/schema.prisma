@@ -131,19 +131,21 @@ model ChatDay {
 }
 
 model TripDetails {
-  id         String     @id @default(uuid())
-  title      String
-  username   String?
-  location   String
-  coverPhoto String
-  duration   Int
-  published  Boolean    @default(false)
-  overview   Overview?
-  itinerary  Itinerary?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  userId     String
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String     @id @default(uuid())
+  title           String
+  username        String?
+  location        String
+  coverPhoto      String
+  photoCreditName String?
+  photoCreditLink String?
+  duration        Int
+  published       Boolean    @default(false)
+  overview        Overview?
+  itinerary       Itinerary?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Overview {
@@ -163,28 +165,28 @@ model Itinerary {
 }
 
 model DailyTrip {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   dayNumber   Int
   title       String
-  overview    Json      // { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
+  overview    Json // { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
   activities  Activity[]
   itineraryId String
-  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itinerary   Itinerary  @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   placeId      String // Google Places ID
   activityName String
-  summary      String    @db.Text
+  summary      String     @db.Text
   photos       String[]
-  location     Json      @default("{}")
+  location     Json       @default("{}")
   activityType String?
   time         String?
   dailyTripId  String?
   dailyTrip    DailyTrip? @relation(fields: [dailyTripId], references: [id], onDelete: Cascade)
   tripDayId    String?
-  tripDay      TripDay?  @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+  tripDay      TripDay?   @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
   chatDayId    String?
-  chatDay      ChatDay?  @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
+  chatDay      ChatDay?   @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
 }

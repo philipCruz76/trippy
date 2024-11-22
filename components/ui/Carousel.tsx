@@ -5,6 +5,12 @@ import { ChevronLeft, ChevronRight } from "react-feather";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type CarouselSlide = {
   url: string;
@@ -20,6 +26,9 @@ type CarouselProps = {
   customHeight?: string;
   asPhotosOnly?: boolean;
   href?: string;
+  credit?: boolean;
+  photoCreditName?: string | null;
+  photoCreditLink?: string | null;
 };
 
 const Carousel = ({
@@ -28,6 +37,9 @@ const Carousel = ({
   customHeight,
   asPhotosOnly,
   href = "",
+  credit,
+  photoCreditName,
+  photoCreditLink,
 }: CarouselProps) => {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const buttonsRef = useRef(null);
@@ -97,37 +109,80 @@ const Carousel = ({
             priority
             alt={`Photo-${currentSlide}`}
           />
-{slides.length > 1 && (
-          <div
-            ref={buttonsRef}
-            className="absolute inset-0 flex items-center justify-between p-4"
-          >
-            <button
-              onClick={prev}
-              className="hidden group-hover:block p-1 rounded-full shadow bg-white/80 text-gray-800 hover:bg-white"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button
-              onClick={next}
-              className="hidden group-hover:block p-1 rounded-full shadow bg-white/80 text-gray-800 hover:bg-white"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div> )}
+          {credit && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Add your information button click handler here
+                    }}
+                    className="absolute bottom-4 right-4 p-2 rounded-full bg-transparent hover:bg-white/80 transition-colors shadow-md z-10"
+                    aria-label="Photo credit information"
+                  >
+                    <Image
+                      src="/icons/information.svg"
+                      width={16}
+                      height={16}
+                      alt="Information"
+                      className="w-4 h-4"
+                    />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-white text-black p-2 rounded-md shadow-md">
+                  <p>Photo by{' '}
+                    {photoCreditLink ? (
+                      <a 
+                        href={photoCreditLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {photoCreditName}
+                      </a>
+                    ) : (
+                      <span>{photoCreditName}</span>
+                    )}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           {slides.length > 1 && (
-          <div className="absolute bottom-4 right-0 left-0">
-            <div className="flex items-center justify-center gap-2">
-              {slides.map((_, i) => (
-                <div
-                  key={i}
-                  className={`
+            <div
+              ref={buttonsRef}
+              className="absolute inset-0 flex items-center justify-between p-4"
+            >
+              <button
+                onClick={prev}
+                className="hidden group-hover:block p-1 rounded-full shadow bg-white/80 text-gray-800 hover:bg-white"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={next}
+                className="hidden group-hover:block p-1 rounded-full shadow bg-white/80 text-gray-800 hover:bg-white"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+          )}
+          {slides.length > 1 && (
+            <div className="absolute bottom-4 right-0 left-0">
+              <div className="flex items-center justify-center gap-2">
+                {slides.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`
               transition-all w-3 h-3 bg-white rounded-full
               ${currentSlide === i ? "p-2" : "bg-opacity-50"}
             `}
-                />
-              ))}
-            </div>
+                  />
+                ))}
+              </div>
             </div>
           )}
         </Link>

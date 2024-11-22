@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       const sanitizedTitle = title.trim();
       const sanitizedLocation = location.trim();
 
-      const coverPhoto = await getUnsplashImage(sanitizedLocation);
+      const coverPhoto = await getUnsplashImage(sanitizedLocation+" cityscape");
       
       if(coverPhoto.total === 0) {
         return NextResponse.json(
@@ -52,6 +52,8 @@ export async function POST(request: Request) {
           username: session.user.username || 'Anonymous',
           userId: session.user.id,
           coverPhoto: coverPhoto.images[0].url,
+          photoCreditName: coverPhoto.images[0].creator?.username,
+          photoCreditLink: coverPhoto.images[0].creator?.link,
           overview: {
             create: {
               summary: "",

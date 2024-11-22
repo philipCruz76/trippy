@@ -8,14 +8,14 @@ const unsplash = createApi({
 
 function formatImageResult(data: any): ImageResult {
   const { total, results } = data;
-  const resut = {
+  const result = {
     images: [],
     total,
     page: 1,
     per_page: 10,
   };
 
-  resut.images = results.map((item: any) => {
+  result.images = results.map((item: any) => {
     const { id, description, urls, user } = item;
     const cur = {
       id,
@@ -29,7 +29,7 @@ function formatImageResult(data: any): ImageResult {
     return cur;
   });
 
-  return resut;
+  return result;
 }
 
 export async function getUnsplashImage(prompt: string) {
@@ -40,7 +40,7 @@ export async function getUnsplashImage(prompt: string) {
         page: 1,
         perPage: 10,
         orientation: "portrait",
-        orderBy: "editorial",
+        orderBy: "relevant",
         plus:"none",
       })
       .then((result) => {

@@ -23,22 +23,22 @@ type TripBannerProps = {
   isOwner?: boolean;
 };
 
-const TripBanner = ({ 
-  coverImage, 
-  title: initialTitle, 
-  location, 
-  username, 
+const TripBanner = ({
+  coverImage,
+  title: initialTitle,
+  location,
+  username,
   duration,
   isOwner = false,
 }: TripBannerProps) => {
-  const [editType, setEditType] = useState<'title' | 'image' | null>(null);
+  const [editType, setEditType] = useState<"title" | "image" | null>(null);
   const { coverPhoto, setCoverPhoto, title, setTitle } = useTripEditorStore();
 
-  const handleUpdate = (newValue: string) => {
-    if (editType === 'title') {
+  const handleUpdate = (newValue: string, creditName?: string, creditLink?: string) => {
+    if (editType === "title") {
       setTitle(newValue);
-    } else if (editType === 'image') {
-      setCoverPhoto(newValue);
+    } else if (editType === "image") {
+      setCoverPhoto(newValue, creditName, creditLink);
     }
   };
 
@@ -55,11 +55,11 @@ const TripBanner = ({
           className="rounded-[inherit] object-cover object-center rounded-b-2xl"
         />
         <div className="absolute inset-0 rounded-b-2xl bg-gradient-to-b from-neutral-100 to-neutral-900 opacity-20" />
-        
+
         {isOwner && (
           <div className="absolute top-4 left-4 flex gap-2">
             <Button
-              onClick={() => setEditType('image')}
+              onClick={() => setEditType("image")}
               className="bg-black/50 hover:bg-black/70 text-white rounded-full"
               size="icon"
             >
@@ -77,11 +77,19 @@ const TripBanner = ({
             </h1>
             {isOwner && (
               <Button
-                onClick={() => setEditType('title')}
+                onClick={() => setEditType("title")}
                 className="bg-black/50 hover:bg-black/70 text-white rounded-full flex-shrink-0"
                 size="icon"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#feffff" viewBox="0 0 256 256"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM136,75.31,152.69,92,68,176.69,51.31,160ZM48,208V179.31L76.69,208Zm48-3.31L79.32,188,164,103.31,180.69,120Zm96-96L147.32,64l24-24L216,84.69Z"></path></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="#feffff"
+                  viewBox="0 0 256 256"
+                >
+                  <path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM136,75.31,152.69,92,68,176.69,51.31,160ZM48,208V179.31L76.69,208Zm48-3.31L79.32,188,164,103.31,180.69,120Zm96-96L147.32,64l24-24L216,84.69Z"></path>
+                </svg>
               </Button>
             )}
           </div>
@@ -110,12 +118,12 @@ const TripBanner = ({
       <EditDialog
         open={editType !== null}
         onOpenChange={(open) => setEditType(open ? editType : null)}
-        type={editType || 'title'}
-        initialValue={editType === 'title' ? displayedTitle : displayedImage}
+        type={editType || "title"}
+        initialValue={editType === "title" ? displayedTitle : displayedImage}
         onUpdate={handleUpdate}
       />
     </>
   );
 };
 
-export default TripBanner; 
+export default TripBanner;
