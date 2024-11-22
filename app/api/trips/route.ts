@@ -64,29 +64,36 @@ export async function POST(request: Request) {
             create: {
               title: itinerary?.title || "",
               dailyTrip: {
-                create: itinerary?.days?.map((day: DailyActivitesType, index: number) => ({
-                  dayNumber: index + 1,
-                  title: `Day ${index + 1}`,
-                  overview: {
-                    summary: "",
-                    activityTypes: [],
-                    destinations: []
-                  },
-                  activities: {
-                    create: day.dailyActivities.map((activity: ActivityType) => ({
-                      placeId: activity.id,
-                      activityName: activity.title,
+                create: itinerary?.days?.map((day: DailyActivitesType, index: number) => {
+                  console.log('Day activities:', {
+                    dayNumber: index + 1,
+                    activities: day.dailyActivities
+                  });
+                  
+                  return ({
+                    dayNumber: index + 1,
+                    title: `Day ${index + 1}`,
+                    overview: {
                       summary: "",
-                      photos: activity.cover ? [activity.cover] : [],
-                      location: {
-                        lat: activity.location.lat,
-                        lng: activity.location.lng,
-                      },
-                      activityType: activity.activityType,
-                      time: `${activity.durationFrom}-${activity.durationTo}`
-                    }))
-                  }
-                }))
+                      activityTypes: [],
+                      destinations: []
+                    },
+                    activities: {
+                      create: day.dailyActivities.map((activity: ActivityType) => ({
+                        placeId: activity.id || crypto.randomUUID(),
+                        activityName: activity.title,
+                        summary: "",
+                        photos: activity.cover ? [activity.cover] : [],
+                        location: activity.location || {},
+                        activityType: activity.activityType,
+                        time: activity.durationFrom && activity.durationTo 
+                          ? `${activity.durationFrom}-${activity.durationTo}`
+                          : null,
+                        manualInput: Boolean(activity.manualInput)
+                      }))
+                    }
+                  });
+                })
               }
             }
           }

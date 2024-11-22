@@ -184,6 +184,7 @@ model Activity {
   activityType String?
   time         String?
   dailyTripId  String?
+  manualInput  Boolean    @default(false)
   dailyTrip    DailyTrip? @relation(fields: [dailyTripId], references: [id], onDelete: Cascade)
   tripDayId    String?
   tripDay      TripDay?   @relation(fields: [tripDayId], references: [id], onDelete: Cascade)

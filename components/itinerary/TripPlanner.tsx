@@ -208,8 +208,6 @@ const TripPlanner = () => {
       toast.error("Failed to save trip. Please try again.");
       setIsSaving(false); // Only reset if there's an error
     }
-    // Removed the finally clause - we only want to reset isSaving on error
-    // On success, we keep the button disabled as we're redirecting anyway
   };
 
   return (
@@ -328,7 +326,8 @@ const TripPlanner = () => {
             </h2>
             <button
               onClick={handleAddDay}
-              className="flex items-center gap-1 px-3 py-1 rounded-full border hover:bg-zinc-200 transition-colors duration-300 group"
+              disabled={isSaving}
+              className="flex items-center gap-1 px-3 py-1 rounded-full border hover:bg-zinc-200 transition-colors duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-blue-500 text-lg group-hover:scale-125 transform ease-in-out duration-300">
                 +
@@ -362,7 +361,8 @@ const TripPlanner = () => {
                               e.stopPropagation();
                               setDayToDelete(index);
                             }}
-                            className="mr-4 p-1.5 rounded-full hover:bg-red-100 group transition-colors duration-300"
+                            disabled={isSaving}
+                            className="mr-4 p-1.5 rounded-full hover:bg-red-100 group transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -462,7 +462,8 @@ const TripPlanner = () => {
                       onClick={() =>
                         setCreateActivity({ create: true, dayIndex: index })
                       }
-                      className="w-[90px] text-center items-center justify-center flex rounded-full border p-1 hover:bg-zinc-200 hover:animate-pulse group"
+                      disabled={isSaving}
+                      className="w-[90px] text-center items-center justify-center flex rounded-full border p-1 hover:bg-zinc-200 hover:animate-pulse group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="text-blue-500 text-xl group-hover:scale-125 transform ease-in-out duration-300">
                         +

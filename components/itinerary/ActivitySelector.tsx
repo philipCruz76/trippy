@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { minutesToTimeString, timeStringToMinutes } from "@/lib/utils";
 import { ActivityValidator, ActivityType } from "@/types/trip.types";
-import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
+import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 
 type ActivitySelectorProps = {
   editField: boolean;
@@ -46,7 +46,7 @@ const ActivitySelector = ({
 }: ActivitySelectorProps) => {
   const [showForm, setShowForm] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { addActivity } = useTripEditorStore();
+  const { addActivity } = useTripCreatorStore();
   const [selectedActivityType, setSelectedActivityType] = useState<string>("");
 
   const form = useForm<ActivityType>({
@@ -152,6 +152,10 @@ const ActivitySelector = ({
         location: data.location,
       };
   
+      console.log('Adding activity:', {
+        newActivity,
+        dayIndex
+      });
       addActivity(newActivity, dayIndex);
       setEditField({ create: false, dayIndex: 0 });
       form.reset();
@@ -183,24 +187,6 @@ const ActivitySelector = ({
   }, [form]);
 
   useEffect(() => {
-    console.log('Form State:', {
-      values: getValues(),
-      errors,
-      isValid,
-      dirtyFields,
-      touchedFields
-    });
-  }, [getValues, errors, isValid, dirtyFields, touchedFields]);
-
-  const handleDebugClick = async () => {
-    const result = await trigger();
-    console.log('Trigger result:', result);
-    console.log('Current validation errors:', errors);
-    console.log('Form values:', getValues());
-    console.log('Form state:', form.formState);
-  };
-
-  useEffect(() => {
     if (selectedActivityType) {
       setValue("id", getValues("id") || crypto.randomUUID(), {
         shouldValidate: true,
@@ -227,17 +213,6 @@ const ActivitySelector = ({
       setShowForm(true);
     }
   }, [selectedActivityType, setValue]);
-
-  useEffect(() => {
-    console.log('Form State Changed:', {
-      values: getValues(),
-      errors,
-      isValid,
-      dirtyFields,
-      touchedFields,
-      isDirty: form.formState.isDirty
-    });
-  }, [form.formState, getValues, errors, isValid, dirtyFields, touchedFields]);
 
   return (
     <Dialog
