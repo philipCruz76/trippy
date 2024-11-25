@@ -45,6 +45,7 @@ const SignInModal = ({}: SignInModalProps) => {
                 </Label>
                 <Input
                   id="email"
+                  disabled
                   type="text"
                   className="w-full overflow-x-scroll border h-[34px] rounded-xl border-gray-400"
                 />
@@ -60,6 +61,7 @@ const SignInModal = ({}: SignInModalProps) => {
                 </Label>
                 <Input
                   id="password"
+                  disabled
                   type="text"
                   className="w-full overflow-x-scroll border h-[34px] rounded-xl border-gray-400"
                 />
@@ -67,7 +69,8 @@ const SignInModal = ({}: SignInModalProps) => {
 
               <button
                 type="submit"
-                className="flex items-center justify-center border rounded-xl w-full h-[40px] bg-black hover:bg-black/80"
+                disabled
+                className="flex items-center justify-center border rounded-xl w-full h-[40px] bg-black hover:bg-black/80 cursor-not-allowed"
               >
                 <span className="text-slate-100 px-2 text-center font-light">
                   Continue

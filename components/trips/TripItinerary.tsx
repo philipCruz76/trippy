@@ -1,6 +1,6 @@
 import { TripDetails } from "@/types/trip.types";
 import Carousel from "../ui/Carousel";
-import { Input } from "../ui/input";
+import TextareaAutoSize from "react-textarea-autosize";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 import { useEffect } from "react";
 import { activityTypeIconSelector } from "@/lib/utils/map-utils";
@@ -118,12 +118,13 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                           <div className="shrink-0 bg-separator h-px w-full my-5 desktop:my-6" />
                           <div className="text-pretty pb-9 leading-relaxed">
                             {isOwner === true ? (
-                              <Input
+                              <TextareaAutoSize
                                 value={getActivitySummary(dayIndex, actIndex)}
                                 onChange={(e) => {
                                   updateActivitySummary(dayIndex, actIndex, e.target.value);
                                 }}
-                                className="w-full p-2 border rounded debug-input-visible"
+                                placeholder="Add a summary for this activity..."
+                                className="w-full resize-none bg-transparent outline-none border rounded p-2 min-h-[100px] scrollbar-hide"
                               />
                             ) : (
                               <p>{activity.summary || ''}</p>
@@ -150,12 +151,13 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                           <div className="shrink-0 bg-separator h-px w-full my-5 desktop:my-6" />
                           <div className="text-pretty pb-9 leading-relaxed">
                             {isOwner === true ? (
-                              <Input
+                              <TextareaAutoSize
                                 value={getActivitySummary(dayIndex, actIndex)}
                                 onChange={(e) => {
                                   updateActivitySummary(dayIndex, actIndex, e.target.value);
                                 }}
-                                className="w-full p-2 border rounded debug-input-visible"
+                                placeholder="Add a description..."
+                                className="w-full resize-none bg-transparent outline-none border rounded p-2 min-h-[100px] scrollbar-hide"
                               />
                             ) : (
                               <p>{activity.summary || ''}</p>
