@@ -75,7 +75,7 @@ const ActivitySelector = ({
     watch,
     setValue,
     getValues,
-    formState: { errors, isValid, isSubmitting, dirtyFields, touchedFields },
+    formState: { errors, isValid, isSubmitting, },
   } = form;
 
   const ACTIVITY_TYPES = [

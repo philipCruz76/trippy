@@ -49,9 +49,6 @@ const TripPlanner = () => {
     setItinerary,
     setLocation,
     setDuration,
-    setComment,
-    addActivity,
-    removeActivity,
   } = useTripCreatorStore();
   const [open, setIsOpen] = useState<boolean>(false);
   const [editLocation, setEditLocation] = useState<boolean>(false);
@@ -200,6 +197,10 @@ const TripPlanner = () => {
       }
 
       const savedTrip = await response.json();
+
+      // Reset both stores
+      useTripCreatorStore.getState().resetStore();
+      useTripEditorStore.getState().resetStore();
 
       toast.success("Trip saved successfully!");
       toast.success("Redirecting to trip...");

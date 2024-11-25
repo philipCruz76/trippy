@@ -32,6 +32,7 @@ export const ActivityValidator = z.object({
     lat: z.number(),
     lng: z.number()
   }),
+  summary: z.string().optional(),
   activityType: z.string(),
   durationFrom: z.string().optional(),
   durationTo: z.string().optional(),

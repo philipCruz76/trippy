@@ -178,7 +178,7 @@ model Activity {
   id           String     @id @default(uuid())
   placeId      String // Google Places ID
   activityName String
-  summary      String     @db.Text
+  summary      String?    @db.Text
   photos       String[]
   location     Json       @default("{}")
   activityType String?

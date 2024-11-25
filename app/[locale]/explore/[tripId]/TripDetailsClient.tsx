@@ -80,7 +80,8 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         title: updatedTitle, 
         coverPhoto: updatedCoverPhoto,
         coverPhotoCreditName,
-        coverPhotoCreditLink 
+        coverPhotoCreditLink,
+        tripActivities 
       } = useTripEditorStore.getState();
       
       const response = await fetch(`/api/trips/${tripId}/publish`, {
@@ -93,6 +94,12 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
           coverPhoto: updatedCoverPhoto || initialData.coverPhoto,
           photoCreditName: coverPhotoCreditName || initialData.photoCreditName,
           photoCreditLink: coverPhotoCreditLink || initialData.photoCreditLink,
+          activities: tripActivities.map(dayActivities => 
+            dayActivities.map(activity => ({
+              ...activity,
+              summary: activity.summary || ''
+            }))
+          )
         }),
       });
 
@@ -330,11 +337,11 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         </div>
 
         <div ref={itineraryRef}>
-          <TripItinerary itinerary={initialData.itinerary} />
+          <TripItinerary itinerary={initialData.itinerary} isOwner={session.data?.user.username === initialData.username} />
         </div>
 
         <div ref={locationsRef}>
-          <TripLocations  placesIds ={placesIds}/>
+          <TripLocations placesIds={placesIds} />
         </div>
       </div>
     </div>
