@@ -46,7 +46,7 @@ export async function getUnsplashImage(prompt: string) {
       .then((result) => {
         switch (result.type) {
           case "error":
-            console.log("error occurred: ", result.errors[0]);
+            console.error("error occurred: ", result.errors[0]);
             reject(result.errors[0]);
           case "success":
             const photo = result.response;

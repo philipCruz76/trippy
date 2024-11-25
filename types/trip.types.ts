@@ -82,6 +82,7 @@ export const TripDetailsValidator = z.object({
   photoCreditLink: z.string().optional(),
   location: z.string(),
   duration: z.number(),
+  published: z.boolean(),
   overview: z.object({
     summary: z.string(),
     activityTypes: z.array(z.map(z.string(), z.number())),

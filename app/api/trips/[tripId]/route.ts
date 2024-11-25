@@ -50,6 +50,7 @@ export async function GET(
       location: tripDetails.location,
       coverPhoto: tripDetails.coverPhoto,
       duration: tripDetails.duration,
+      published: tripDetails.published,
       overview: {
         summary: tripDetails.overview?.summary ?? "",
         activityTypes: tripDetails.overview?.activityTypes as Record<string, number>[] ?? []

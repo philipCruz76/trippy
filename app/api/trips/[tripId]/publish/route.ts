@@ -92,3 +92,36 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { tripId: string } }
+) {
+  try {
+    const tripId = params.tripId;
+
+    if (!tripId) {
+      return NextResponse.json(
+        { error: "Trip ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const updatedTrip = await db.tripDetails.update({
+      where: {
+        id: tripId,
+      },
+      data: {
+        published: false,
+      },
+    });
+
+    return NextResponse.json(updatedTrip);
+  } catch (error) {
+    console.error('Error unpublishing trip:', error);
+    return NextResponse.json(
+      { error: "Failed to unpublish trip" },
+      { status: 500 }
+    );
+  }
+}
