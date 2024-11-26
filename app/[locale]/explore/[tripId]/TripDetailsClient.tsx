@@ -74,8 +74,6 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
 
   const handlePublish = async () => {
     try {
-      setIsPublishing(true);
-      
       // Get latest values from tripEditorStore
       const { 
         title: updatedTitle, 
@@ -84,6 +82,27 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         coverPhotoCreditLink,
         tripActivities 
       } = useTripEditorStore.getState();
+
+      // Check if there are any changes
+      const hasChanges = 
+        (updatedTitle && updatedTitle !== initialData.title) ||
+        (updatedCoverPhoto && updatedCoverPhoto !== initialData.coverPhoto) ||
+        (coverPhotoCreditName && coverPhotoCreditName !== initialData.photoCreditName) ||
+        (coverPhotoCreditLink && coverPhotoCreditLink !== initialData.photoCreditLink) ||
+        tripActivities.some((dayActivities, dayIndex) =>
+          dayActivities.some((activity, actIndex) => {
+            const originalActivity = initialData.itinerary.dailyTrip[dayIndex]?.itinerary[0]?.activities[actIndex];
+            return activity.summary !== (originalActivity?.summary || '');
+          })
+        );
+
+      if (!hasChanges) {
+        toast.success('No changes to publish');
+        setShowPublishDialog(false);
+        return;
+      }
+
+      setIsPublishing(true);
       
       const response = await fetch(`/api/trips/${tripId}/publish`, {
         method: 'PATCH',
@@ -164,7 +183,7 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
       }
 
       toast.success('Trip unpublished successfully!');
-      router.refresh(); // Refresh the page to update the UI
+      setShowUnpublishDialog(false);
     } catch (error) {
       toast.error('Failed to unpublish trip');
       console.error('Error unpublishing trip:', error);
@@ -219,98 +238,97 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
           duration={initialData.duration}
           isOwner={session.data?.user.username === initialData.username}
         />
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          {session.data?.user.username === initialData.username && (
-            <>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      onClick={() => setShowPublishDialog(true)}
-                      disabled={!isPublishable}
-                      className={cn(
-                        "group relative z-0 inline-flex justify-center items-center gap-2",
-                        "rounded-full font-medium outline-none transition-all duration-200",
-                        "py-[.25em] px-6 min-h-[40px] text-sm",
-                        !isPublishable
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                          : "bg-white text-gray-800 border border-input hover:border-black hover:scale-105 active:scale-100",
-                        "shadow-sm backdrop-blur-sm"
-                      )}
-                    >
-                      {isPublishing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Globe2 className="w-4 h-4" />
-                      )}
-                      {isPublishing ? 'Publishing...' : 'Publish Trip'}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {!isPublishable ? (
-                      <p>Please add a title, location and at least one activity to publish your trip</p>
-                    ) : initialData.published ? (
-                      <p>Update and Publish Trip with new details</p>
-                    ) : (
-                      <p>Make your trip visible to other users</p>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {initialData.published === true && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button 
-                        onClick={() => setShowUnpublishDialog(true)}
-                        className={cn(
-                          "group relative z-0 inline-flex justify-center items-center gap-2",
-                          "rounded-full font-medium outline-none transition-all duration-200",
-                          "py-[.25em] px-6 min-h-[40px] text-sm",
-                          "bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-100",
-                          "shadow-sm backdrop-blur-sm"
-                        )}
-                      >
-                        {isPublishing ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Globe2 className="w-4 h-4" />
-                        )}
-                        {isPublishing ? 'Processing...' : 'Unpublish Trip'}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Make your trip private</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      onClick={() => setShowDeleteDialog(true)}
-                      variant="ghost"
-                      className={cn(
-                        "h-10 w-10 rounded-full bg-white shadow-sm",
-                        "hover:bg-destructive hover:text-white transition-all duration-200",
-                        "hover:scale-105 active:scale-100"
-                      )}
-                    >
-                      <Trash2 className="min-w-5 min-h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Delete trip</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </>
-          )}
-        </div>
       </div>
+
+      {session.data?.user.username === initialData.username && (
+        <div className="fixed top-[120px] right-[32px] flex flex-col gap-2 z-50">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={() => setShowPublishDialog(true)}
+                  disabled={!isPublishable}
+                  className={cn(
+                    "group relative z-0 inline-flex justify-center items-center gap-2",
+                    "rounded-full font-medium outline-none transition-all duration-200",
+                    "py-[.25em] px-6 min-h-[40px] text-sm",
+                    !isPublishable
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                      : "bg-white text-gray-800 border border-input hover:border-black hover:scale-105 active:scale-100",
+                    "shadow-sm backdrop-blur-sm"
+                  )}
+                >
+                  {isPublishing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Globe2 className="w-4 h-4" />
+                  )}
+                  {isPublishing ? 'Publishing...' : 'Publish Trip'}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                {!isPublishable ? (
+                  <p>Please add a title, location and at least one activity to publish your trip</p>
+                ) : initialData.published ? (
+                  <p>Update and Publish Trip with new details</p>
+                ) : (
+                  <p>Make your trip visible to other users</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {initialData.published === true && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={() => setShowUnpublishDialog(true)}
+                    className={cn(
+                      "group relative z-0 inline-flex justify-center items-center gap-2",
+                      "rounded-full font-medium outline-none transition-all duration-200",
+                      "py-[.25em] px-6 min-h-[40px] text-sm",
+                      "bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-100",
+                      "shadow-sm backdrop-blur-sm"
+                    )}
+                  >
+                    {isPublishing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Globe2 className="w-4 h-4" />
+                    )}
+                    {isPublishing ? 'Processing...' : 'Unpublish Trip'}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>Make your trip private</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={() => setShowDeleteDialog(true)}
+                  variant="ghost"
+                  className={cn(
+                    "h-10 w-10 rounded-full bg-white shadow-sm",
+                    "hover:bg-destructive hover:text-white transition-all duration-200",
+                    "hover:scale-105 active:scale-100"
+                  )}
+                >
+                  <Trash2 className="min-w-5 min-h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Delete trip</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
 
       <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
         <DialogContent className="mobile:max-w-[425px]">
@@ -431,7 +449,7 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         <TripNavigation onNavigate={scrollIntoView} activeSection={activeSection} />
         
         <div ref={overviewRef}>
-          <TripOverview overview={initialData.overview} />
+          <TripOverview overview={initialData.overview} isOwner={session.data?.user.username === initialData.username} />
         </div>
 
         <div ref={itineraryRef}>

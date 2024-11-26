@@ -3,16 +3,23 @@ import db from "@/lib/db";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { tripId: string } }
+  { params }: { params: { tripId: string } },
 ) {
   try {
     const tripId = params.tripId;
-    const { title, coverPhoto, photoCreditName, photoCreditLink, activities } = await request.json();
+    const {
+      title,
+      coverPhoto,
+      photoCreditName,
+      photoCreditLink,
+      activities,
+      overviewSummary,
+    } = await request.json();
 
     if (!tripId) {
       return NextResponse.json(
         { error: "Trip ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -24,18 +31,18 @@ export async function PATCH(
           include: {
             dailyTrip: {
               include: {
-                activities: true
-              }
-            }
-          }
-        }
-      }
+                activities: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!trip?.itinerary?.dailyTrip) {
       return NextResponse.json(
         { error: "Trip itinerary not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,7 +50,7 @@ export async function PATCH(
     for (let dayIndex = 0; dayIndex < activities.length; dayIndex++) {
       const dayActivities = activities[dayIndex];
       const dailyTrip = trip.itinerary.dailyTrip[dayIndex];
-      
+
       if (dailyTrip && dayActivities) {
         // Update each activity's summary
         for (let actIndex = 0; actIndex < dayActivities.length; actIndex++) {
@@ -51,12 +58,24 @@ export async function PATCH(
           if (activity) {
             await db.activity.update({
               where: { id: activity.id },
-              data: { summary: dayActivities[actIndex].summary || '' }
+              data: { summary: dayActivities[actIndex].summary || "" },
             });
           }
         }
       }
     }
+
+    // Update the overview summary
+    await db.tripDetails.update({
+      where: { id: tripId },
+      data: {
+        overview: {
+          update: {
+            summary: overviewSummary || "",
+          },
+        },
+      },
+    });
 
     // Update the trip details
     const updatedTrip = await db.tripDetails.update({
@@ -75,27 +94,27 @@ export async function PATCH(
           include: {
             dailyTrip: {
               include: {
-                activities: true
-              }
-            }
-          }
-        }
-      }
+                activities: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json(updatedTrip);
   } catch (error) {
-    console.error('Error publishing trip:', error);
+    console.error("Error publishing trip:", error);
     return NextResponse.json(
       { error: "Failed to publish trip" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { tripId: string } }
+  { params }: { params: { tripId: string } },
 ) {
   try {
     const tripId = params.tripId;
@@ -103,7 +122,7 @@ export async function DELETE(
     if (!tripId) {
       return NextResponse.json(
         { error: "Trip ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -118,10 +137,10 @@ export async function DELETE(
 
     return NextResponse.json(updatedTrip);
   } catch (error) {
-    console.error('Error unpublishing trip:', error);
+    console.error("Error unpublishing trip:", error);
     return NextResponse.json(
       { error: "Failed to unpublish trip" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -4,17 +4,23 @@ import ChatBox from "@/components/chat/ChatBox";
 import TripEditor from "@/components/itinerary/TripEditor";
 import GoogleMapsAIView from "@/components/maps/GoogleMapsAIView";
 import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
-import Image from "next/image";
+import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type pageProps = {};
 
 const page = ({}: pageProps) => {
   const { keywords, geoLocation, dailyItinerary, gptInteractionStarted } =
     useGPTResponseStore();
+  const { setOverview } = useTripCreatorStore();
   const [checkForEmpty, setCheckForEmpty] = useState<boolean>(true);
   const [finalResult, setFinalResult] = useState<boolean>(false);
+  const { data: session } = useSession();
+  const router = useRouter();
 
+  if(!session) return router.push("/");
   useEffect(() => {
     setCheckForEmpty(geoLocation.lat === 0);
   }, [geoLocation]);
@@ -22,7 +28,13 @@ const page = ({}: pageProps) => {
   useEffect(() => {
     if (!dailyItinerary.summary) return;
     setFinalResult(true);
-  }, [dailyItinerary]);
+
+    // When finalResult becomes true, set the overview in TripCreatorStore
+    setOverview({
+      summary: dailyItinerary.summary,
+      activityTypes: [] // This can be populated if needed
+    });
+  }, [dailyItinerary, setOverview]);
 
   return (
     <div className="flex flex-1 max-h-[100dvh] max-w-[100dvw] flex-row">
@@ -50,7 +62,7 @@ const page = ({}: pageProps) => {
             <div className="flex w-full flex-1 flex-col pb-7">
               <div className="flex flex-col gap-5 pb-7">
                 <h2 className="text-2xl font-semibold mobile:text-3xl split:text-4xl tracking-tight">
-                  Where to Today Neo?
+                  Where to Today {session?.user.name ? ` ${session?.user.name}` : ` ${session?.user.username}`}?
                 </h2>
               </div>
             </div>

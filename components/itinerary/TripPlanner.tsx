@@ -179,6 +179,9 @@ const TripPlanner = () => {
     setIsSaving(true); // Start loading
 
     try {
+      const { title, location, duration, itinerary, overview } =
+        useTripCreatorStore.getState();
+
       const response = await fetch("/api/trips", {
         method: "POST",
         headers: {
@@ -189,6 +192,7 @@ const TripPlanner = () => {
           location,
           duration,
           itinerary,
+          overview, // Pass the overview directly from the store
         }),
       });
 
