@@ -1,11 +1,11 @@
 import getDailyItinerary from "@/lib/actions/chat/getDailyItinerary";
-import { GPTDestinationInput, GPTItineraryStructure } from "@/types/trip.types";
+import { mapboxToGPTInput } from "@/lib/utils/mapbox-converters";
+import { MapboxPlace } from "@/types/mapbox.types";
 import { NextResponse } from "next/server";
 
 type RequestType = {
   location: string;
-  inputDestinations: GPTDestinationInput[];
-  places: google.maps.places.Place[];
+  inputDestinations: MapboxPlace[];
   duration: number;
 };
 export async function POST(request: Request) {
@@ -13,10 +13,10 @@ export async function POST(request: Request) {
     const body: RequestType = await request.json();
     const { location, inputDestinations, duration } = body;
 
-    const chatInput: GPTItineraryStructure= {
-      location: location,
-      activities: inputDestinations,
-      duration: duration,
+    const chatInput = {
+      location,
+      activities: mapboxToGPTInput(inputDestinations),
+      duration,
     };
     
     const response = await getDailyItinerary(chatInput)

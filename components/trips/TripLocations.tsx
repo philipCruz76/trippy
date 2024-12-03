@@ -1,11 +1,16 @@
 import { memo } from 'react';
-import GoogleMapsViewer from "@/components/maps/GoogleMapsViewer";
-import MapsProvider from "@/components/maps/MapsProvider";
+import { MapboxProvider } from '@/lib/contexts/MapboxContext';
+import MapBoxViewer from '@/components/maps/MapBoxViewer';
 
-const MemoizedGoogleMapsViewer = memo(GoogleMapsViewer);
-const MemoizedMapsProvider = memo(MapsProvider);
+const MemoizedMapsViewer = memo(MapBoxViewer);
+const MemoizedMapsProvider = memo(MapboxProvider);
 
-const TripLocationsContent = ({placesIds}: {placesIds: string[]}) => {
+const markers = [
+  { id: '1', latitude: 40.7128, longitude: -74.0060 }, // New York
+  { id: '2', latitude: 34.0522, longitude: -118.2437 }, // Los Angeles
+];
+
+const TripLocationsContent = ({POILocations}: {POILocations: {lat: number, lng: number}[]}) => {
   return (
     <div className="py-9 border-t border-separator scroll-mt-[112px]">
       <h3 className="mb-3 text-4xl font-semibold text-center leading-tight">
@@ -13,7 +18,12 @@ const TripLocationsContent = ({placesIds}: {placesIds: string[]}) => {
       </h3>
       <div className="h-[600px] w-full rounded-xl overflow-hidden">
         <MemoizedMapsProvider>
-          <MemoizedGoogleMapsViewer placesIds={placesIds} />
+          <MemoizedMapsViewer 
+           defaultCenter={[4.9041, 52.3676]} // Center of Amsterdam
+           defaultZoom={10}
+           markers={POILocations}
+           onMarkerClick={(id) => console.log(`Clicked marker ${id}`)}
+          />
         </MemoizedMapsProvider>
       </div>
     </div>

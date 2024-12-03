@@ -36,6 +36,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "api.mapbox.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.mapbox.com",
+      },
     ],
   },
   async headers() {
@@ -49,22 +57,24 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Scripts - add Google Maps and other trusted sources
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.googleapis.com https://*.google.com https://*.gstatic.com",
-              // Styles
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              // Scripts - add Google Maps, Mapbox, and other trusted sources
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.googleapis.com https://*.google.com https://*.gstatic.com https://api.mapbox.com https://*.mapbox.com",
+              // Styles - add Mapbox
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com https://*.mapbox.com",
               // Images - allow Cloudinary, Google, AWS S3, and other image sources
-              "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://lh3.googleusercontent.com https://uenji-file-uploads.s3.eu-north-1.amazonaws.com https://places.googleapis.com https://images.unsplash.com",
+              "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://lh3.googleusercontent.com https://uenji-file-uploads.s3.eu-north-1.amazonaws.com https://places.googleapis.com https://images.unsplash.com https://api.mapbox.com https://*.mapbox.com",
               // Fonts
               "font-src 'self' data: https://fonts.gstatic.com",
               // Connect sources for APIs
-              "connect-src 'self' https://*.googleapis.com https://api.openai.com https://api.unsplash.com",
+              "connect-src 'self' https://*.googleapis.com https://api.openai.com https://api.unsplash.com https://api.mapbox.com https://*.mapbox.com https://events.mapbox.com",
               // Frame sources for embedded content
               "frame-src 'self' https://*.google.com",
               // Media sources
               "media-src 'self'",
               // Object sources
               "object-src 'none'",
+              // Worker sources - needed for Mapbox
+              "worker-src 'self' blob:",
             ].join('; ')
           },
           // CORS headers

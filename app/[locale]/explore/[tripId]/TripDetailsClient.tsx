@@ -58,12 +58,12 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
     }
   };
 
-  const placesIds = useMemo(() => 
-    initialData.itinerary.dailyTrip.reduce((ids: string[], day) => {
+  const placesLocations = useMemo(() => 
+    initialData.itinerary.dailyTrip.reduce((ids: {lat: number, lng: number}[], day) => {
       day.itinerary.forEach(itinerary => {
         itinerary.activities.forEach(activity => {
-          if (activity.place_id) {
-            ids.push(activity.place_id);
+          if (activity.location) {
+            ids.push(activity.location);
           }
         });
       });
@@ -457,7 +457,7 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         </div>
 
         <div ref={locationsRef}>
-          <TripLocations placesIds={placesIds} />
+          <TripLocations POILocations={placesLocations} />
         </div>
       </div>
     </div>

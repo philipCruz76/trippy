@@ -7,7 +7,7 @@ import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
 import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import MapBoxAIViewWrapper from "@/components/maps/MapBoxAIView";
 
 type pageProps = {};
 
@@ -18,9 +18,7 @@ const page = ({}: pageProps) => {
   const [checkForEmpty, setCheckForEmpty] = useState<boolean>(true);
   const [finalResult, setFinalResult] = useState<boolean>(false);
   const { data: session } = useSession();
-  const router = useRouter();
 
-  if(!session) return router.push("/");
   useEffect(() => {
     setCheckForEmpty(geoLocation.lat === 0);
   }, [geoLocation]);
@@ -44,7 +42,7 @@ const page = ({}: pageProps) => {
           dir="ltr"
           className="absolute border inset-0 overflow-hidden top-[60px] z-1 max-h-[88dvh] max-w-[49dvw] rounded-2xl left-1/2"
         >
-          <GoogleMapsAIView
+          <MapBoxAIViewWrapper
             city={geoLocation}
             searchTypes={{
               includedTypes: keywords.activityTypes,
