@@ -2,7 +2,6 @@
 import Body from "@/components/chat/Body";
 import ChatBox from "@/components/chat/ChatBox";
 import TripEditor from "@/components/itinerary/TripEditor";
-import GoogleMapsAIView from "@/components/maps/GoogleMapsAIView";
 import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
 import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 import { useEffect, useState } from "react";

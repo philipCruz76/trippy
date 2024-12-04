@@ -54,9 +54,9 @@ export async function searchNearbyPlaces(
   const formattedResults = results.flatMap(response => 
     response.features.map((feature, index) => ({
       ...feature,
-      placeId: feature.id,
+      placeId: feature.properties.mapbox_id,
       formattedAddress: feature.properties.address,
-      editorialSummary: feature.properties.description || '',
+      editorialSummary: feature.properties.description || "",
       regularOpeningHours: {
         weekdayDescriptions: [],
         periods: []

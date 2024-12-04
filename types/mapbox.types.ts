@@ -9,6 +9,7 @@ export type MapboxSearchResult = {
       category?: string;
       rating?: number;
       userRatingCount?: number;
+      mapbox_id?: string;
       photos?: string[];
       openingHours?: {
         periods: Array<{
