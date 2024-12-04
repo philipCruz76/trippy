@@ -35,8 +35,7 @@ export async function searchNearbyPlaces(
       `https://api.mapbox.com/search/searchbox/v1/category/${type}?` +
       new URLSearchParams({
         access_token: MAPBOX_API_KEY!,
-        limit: '4',
-        proximity: `${center[0]},${center[1]}`,
+        limit: '5',
         origin: `${center[0]},${center[1]}`,
         bbox: bbox,
         language: 'en'
