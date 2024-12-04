@@ -190,4 +190,19 @@ model Activity {
   tripDay      TripDay?   @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
   chatDayId    String?
   chatDay      ChatDay?   @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
+  searchQueryId String?
+  searchQuery   SearchQuery? @relation(fields: [searchQueryId], references: [id])
+
+  @@index([searchQueryId])
+}
+
+// New model for search query caching
+model SearchQuery {
+  id            String     @id @default(uuid())
+  latitude      Float
+  longitude     Float
+  includedTypes String[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  activities    Activity[]
 }

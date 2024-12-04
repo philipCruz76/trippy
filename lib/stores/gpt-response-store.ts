@@ -8,6 +8,7 @@ type GPTResponseState = {
   geoLocation: LatLngResult;
   dailyItinerary: DailyItineraryType;
   gptInteractionStarted: boolean;
+  searchQueryId: string | null;
   setKeywords: (keywords: KeywordClassificationsType) => void;
   setGeoLocation: (geoLocation: LatLngResult) => void;
   setDailyItinerary: (dailyItinerary: DailyItineraryType) => void;
@@ -18,6 +19,7 @@ type GPTResponseState = {
   setGptInteractionStarted: (gptInteractionStarted: boolean) => void;
   getGptInteractionStarted: () => boolean;
   setTripTitle: (title: string) => void;
+  setSearchQueryId: (id: string) => void;
 };
 
 export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
@@ -52,6 +54,7 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
   },
   
   gptInteractionStarted: false,
+  searchQueryId: null,
 
   setGptInteractionStarted(gptInteractionStarted) {
     set(
@@ -109,4 +112,5 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
       }),
     );
   },
+  setSearchQueryId: (id) => set({ searchQueryId: id }),
 }));

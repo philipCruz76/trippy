@@ -3,12 +3,10 @@ import InterestMarkers from "./InterestMarkers";
 import { LatLngResult } from "@/lib/actions/chat/getLatLng";
 import {
   useApiIsLoaded,
-  useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
 import toast from "react-hot-toast";
-import { DailyItineraryType } from "@/lib/actions/chat/getDailyItinerary";
 import { toLatLngLiteral } from "@/lib/utils";
 import {
   ActivityType,
@@ -17,6 +15,12 @@ import {
 } from "@/types/trip.types";
 import { useTripCreatorStore } from "@/lib/stores/create-trip-store";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
+import { Activity } from "@prisma/client";
+
+type SearchQueryResponse = {
+  id: string;
+} | Activity;
+
 type ChatMapProps = {
   city: LatLngResult;
   searchTypes: {
@@ -25,24 +29,7 @@ type ChatMapProps = {
   };
 };
 
-// Add this outside the component to avoid recreation
-const SEARCH_RADIUS = 5000;
-const MAX_RESULTS = 20;
-const REQUIRED_PLACE_FIELDS = [
-  "location",
-  "displayName",
-  "formattedAddress",
-  "photos",
-  "rating",
-  "svgIconMaskURI",
-  "types",
-  "userRatingCount",
-  "editorialSummary",
-  "regularOpeningHours",
-] as const;
-
 const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
-  const map = useMap();
   const onLoaded = useApiIsLoaded();
   const placesLib = useMapsLibrary("places");
   const {
@@ -54,7 +41,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
     updateActivityDuration,
   } = useTripCreatorStore();
   const { setShowEditor } = useTripEditorStore();
-  const { dailyItinerary, keywords, setDailyItinerary } = useGPTResponseStore();
+  const { dailyItinerary, keywords, setDailyItinerary, setSearchQueryId } = useGPTResponseStore();
   const [finishedGPTInteraction, setFinishedGPTInteraction] =
     useState<boolean>(false);
   const [results, setResults] = useState<google.maps.places.Place[]>([]);
@@ -131,69 +118,54 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
     if (!placesLib) return;
 
     try {
-      const { places } = await placesLib.Place.searchNearby(searchQuery);
-      setResults(places);
+      const searchResponse = await fetch('/api/search', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude: city.lat,
+          longitude: city.lng,
+          includedTypes: searchTypes.includedTypes,
+        }),
+      });
 
-      const { chatPlaces, inputPlaces, photosCache } = processPlaces(places);
-
-      try {
-        const response = await fetch("/api/gpt/itinerary", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            location: keywords.location,
-            duration: keywords.duration,
-            inputDestinations: chatPlaces,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        let gptReply = (await response.json()) as DailyItineraryType;
-        
-        // Map the indices back to real place IDs and add photos
-        gptReply = {
-          ...gptReply,
-          days: gptReply.days.map(day => ({
-            ...day,
-            activities: day.activities.map(activity => {
-              const place = inputPlaces[activity.index];
-              if (!place) {
-                console.warn(`No place found for index: ${activity.index}`);
-                return activity;
-              }
-              return {
-                ...activity,
-                id: place.id,
-                location: place.location,
-                name: activity.name || place.name,
-                coverPhoto: place.coverPhoto,
-              };
-            })
-          }))
-        };
-
-        setDailyItinerary(gptReply);
-        setFinishedGPTInteraction(true);
-      } catch (error) {
-        toast.error("Failed to generate itinerary");
-        console.error(error);
+      if (!searchResponse.ok) {
+        throw new Error(`HTTP error! status: ${searchResponse.status}`);
       }
+
+      const searchQueryResult = (await searchResponse.json()) as SearchQueryResponse;
+
+      // Handle the case when we get cached activities
+      if (searchQueryResult && Array.isArray(searchQueryResult) && 
+          searchQueryResult.length > 0 && 'placeId' in searchQueryResult[0]) {
+        console.log("Using cached activities");
+        const places = await Promise.all(
+          searchQueryResult.map(activity => 
+            new placesLib.Place({ id: activity.placeId })
+          )
+        );
+        setResults(places);
+        setSearchQueryId(searchQueryResult[0].searchQueryId);
+      } 
+      // Handle the case when we need to perform a new search
+      else {
+        toast.success("Performing new places search");
+        const { places } = await placesLib.Place.searchNearby(searchQuery);
+        setResults(places);
+        
+        if ('id' in searchQueryResult) {
+          setSearchQueryId(searchQueryResult.id);
+        }
+      }
+
     } catch (error) {
       setError(error as Error);
       console.error("Failed to fetch places:", error);
     }
-  }, [
-    placesLib,
-    city,
-    searchTypes,
-    keywords,
-    processPlaces,
-  ]);
+  }, [placesLib, city, searchTypes, keywords, processPlaces]);
 
   useEffect(() => {
     getResults();
@@ -238,6 +210,7 @@ const ChatMap = ({ city, searchTypes }: ChatMapProps) => {
         manualInput: false,
         durationFrom: startTime,
         durationTo: endTime,
+        searchQueryId: searchQuery,
       };
     });
   };
