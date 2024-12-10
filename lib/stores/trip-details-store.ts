@@ -21,8 +21,13 @@ type TripDetailsActions = {
     activity: TripDetails["itinerary"]["dailyTrip"][0]["itinerary"][0]["activities"][0],
   ) => void;
   removeActivity: (dayIndex: number, activityIndex: number) => void;
-  setBatchDetails: (details: Partial<Omit<TripDetails, keyof TripDetailsActions>>) => void;
+  setBatchDetails: (
+    details: Partial<Omit<TripDetails, keyof TripDetailsActions>>,
+  ) => void;
   setItineraryTitle: (title: string) => void;
+  batchUpdateActivities: (
+    updates: Array<{ dayIndex: number; activities: any[] }>,
+  ) => void;
 };
 
 export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
@@ -36,12 +41,24 @@ export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
       summary: "",
       activityTypes: [],
     },
+    published: false,
     itinerary: {
       title: "",
       dailyTrip: [],
       locationTrip: [],
     },
 
+    batchUpdateActivities: (updates) =>
+      set(
+        produce((state) => {
+          updates.forEach(({ dayIndex, activities }) => {
+            if (state.itinerary.dailyTrip[dayIndex]) {
+              state.itinerary.dailyTrip[dayIndex].itinerary[0].activities =
+                activities;
+            }
+          });
+        }),
+      ),
     setUsername: (username) => set({ username }),
 
     setLocation: (location) => set({ location }),
@@ -100,7 +117,7 @@ export const useTripDetailsStore = create<TripDetails & TripDetailsActions>()(
     setBatchDetails: (details) =>
       set((state) => ({
         ...state,
-        ...details
+        ...details,
       })),
 
     setItineraryTitle: (title) =>

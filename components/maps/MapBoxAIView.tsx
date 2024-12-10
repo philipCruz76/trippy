@@ -15,7 +15,6 @@ import type {
   SymbolLayerSpecification,
   MapMouseEvent,
 } from "mapbox-gl";
-import { searchNearbyPlaces } from "@/lib/services/mapbox";
 import { useEffect } from "react";
 import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
 import { usePOIStore } from "@/lib/stores/poi-store";
@@ -29,6 +28,18 @@ import {
 import { MapboxPlace } from "@/types/mapbox.types";
 import { DailyItineraryType } from "@/lib/actions/chat/getDailyItinerary";
 import toast from "react-hot-toast";
+import { convertCategoriesToIds } from '@/lib/utils/categoryConverter';
+import { searchNearbyPlaces } from "@/lib/services/foursquare";
+import { usePlaceCache } from "@/lib/stores/place-cache";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+} from "@/components/ui/dialog";
+import MarkerInfoCard from "@/components/ui/MarkerInfoCard";
 
 type MapBoxAIViewProps = {
   city: LatLngResult;
@@ -37,6 +48,32 @@ type MapBoxAIViewProps = {
     excludedTypes?: string[];
   };
 };
+
+type PopupInfo = {
+  longitude: number;
+  latitude: number;
+  name: string;
+  description?: string;
+  id: string;
+  photos: Array<{
+    url: string;
+    width?: number;
+    height?: number;
+  }>;
+} | null;
+type DialogPosition = {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+};
+
+const DIALOG_DIMENSIONS = {
+  width: 304,
+  height: 436,
+  padding: 16,
+  markerSize: 48,
+} as const;
 
 const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
   const mapRef = useRef<MapRef>(null);
@@ -47,13 +84,7 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     zoom: 14,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [popupInfo, setPopupInfo] = useState<{
-    longitude: number;
-    latitude: number;
-    name: string;
-    description?: string;
-    id: string;
-  } | null>(null);
+  const [popupInfo, setPopupInfo] = useState<PopupInfo>(null);
 
   const { setMarkerId, setHoveredMarkerId } = usePOIStore();
   const {
@@ -65,42 +96,14 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     updateActivityDuration,
   } = useTripCreatorStore();
   const { setShowEditor } = useTripEditorStore();
+  const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(null);
   const { dailyItinerary, keywords, setDailyItinerary } = useGPTResponseStore();
   const [finishedGPTInteraction, setFinishedGPTInteraction] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout>();
+  const positionRef = useRef<DialogPosition | null>(null);
+  const { addPlaces } = usePlaceCache();
 
-  const processPlaces = useCallback((places: MapboxPlace[]) => {
-    const chatPlaces: GPTDestinationInput[] = [];
-    const inputPlaces: ItineraryDestination[] = [];
-    const coverPhoto = "";
-    places.forEach((place, index) => {
-      if (!place.placeId) {
-        console.warn("Place missing ID:", place);
-        return;
-      }
 
-      // Only send name and description to GPT
-      chatPlaces.push({
-        index: index,
-        name: place.properties.name,
-        description: place.properties.description || "",
-      });
-
-      // Keep full place data in inputPlaces
-      inputPlaces.push({
-        id: place.id,
-        name: place.properties.name,
-        coverPhoto,
-        location: {
-          latitude: place.geometry.coordinates[1],
-          longitude: place.geometry.coordinates[0],
-        },
-        openingHours: place.regularOpeningHours?.weekdayDescriptions,
-        description: place.properties.description || "",
-      });
-    });
-
-    return { chatPlaces, inputPlaces, coverPhoto };
-  }, []);
   const parseActivities = (
     activities: any[],
     startTime: string = "09:00",
@@ -120,16 +123,28 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       const endTime = `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
       currentTime = endTime;
 
+      const location = activity.location ? {
+        lat: activity.location.latitude || 0,
+        lng: activity.location.longitude || 0,
+      } : {
+        lat: 0,
+        lng: 0
+      };
+
+      // Find the corresponding place in searchResults to get the cover photo
+      const place = searchResults.find(p => p.id === activity.id);
+      const coverPhoto = place?.properties?.photos?.[0]?.prefix 
+        ? `${place.properties.photos[0].prefix}original${place.properties.photos[0].suffix}`
+        : "";
+
       return {
         id: activity.id,
         title: activity.name,
-        cover: activity.coverPhoto || "",
+        cover: coverPhoto,
         activityType: activity.activityType || "place",
-        location: {
-          lat: activity.location.latitude,
-          lng: activity.location.longitude,
-        },
+        location: location,
         manualInput: false,
+        summary: activity.summary || "",
         durationFrom: startTime,
         durationTo: endTime,
       };
@@ -152,15 +167,15 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       setIsLoading(true);
 
       try {
-        const searchTypesString = searchTypes.includedTypes.join(" ");
         const places = await searchNearbyPlaces(
-          searchTypesString,
           [city.lng, city.lat],
-          searchTypes.includedTypes,
+          convertCategoriesToIds(searchTypes.includedTypes),
         );
 
+        console.log(places);
         if (isSubscribed) {
           setSearchResults(places);
+          addPlaces(places);
 
           try {
             const response = await fetch("/api/gpt/itinerary", {
@@ -197,7 +212,7 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
                     id: place.id,
                     location: keywords.location,
                     name: activity.name || place.properties.name,
-                    coverPhoto: "",
+                    summary: activity.editorialSummary || "",
                   };
                 }),
               })),
@@ -228,27 +243,9 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     city.lng,
     searchTypes.includedTypes,
     setSearchResults,
-    processPlaces,
     keywords.location,
     keywords.duration,
   ]);
-
-  // Convert search results to GeoJSON
-  const points = {
-    type: "FeatureCollection",
-    features: searchResults.map((place) => ({
-      type: "Feature",
-      properties: {
-        id: place.id,
-        name: place.properties.name,
-        description: place.properties.description,
-      },
-      geometry: {
-        type: "Point",
-        coordinates: place.geometry.coordinates,
-      },
-    })),
-  };
 
   // Layer styles remain the same as your original code
   const clusterLayer: CircleLayerSpecification = {
@@ -279,18 +276,67 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     },
   };
 
-  const unclusteredPointLayer: CircleLayerSpecification = {
-    id: "unclustered-point",
-    type: "circle",
-    source: "markers",
-    filter: ["!", ["has", "point_count"]],
-    paint: {
-      'circle-color': "#ffffff",
-      'circle-radius': 6,
-      'circle-stroke-width': 2,
-      'circle-stroke-color': "#000000",
-    },
-  };
+  const calculateDialogPosition = useCallback((rect: DOMRect) => {
+    if (typeof window === "undefined") return null;
+
+    const {
+      width: dialogWidth,
+      height: dialogHeight,
+      padding,
+    } = DIALOG_DIMENSIONS;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let position: DialogPosition = {};
+
+    // Get the marker element's bounds
+    const markerCenterX = rect.left + rect.width / 2;
+    const markerCenterY = rect.top + rect.height / 2;
+
+    // Horizontal positioning
+    // Try to center the dialog relative to the marker first
+    let idealLeft = markerCenterX - dialogWidth / 2;
+
+    // Check if centered position would overflow viewport
+    if (idealLeft < padding) {
+      // Too close to left edge, align with left edge + padding
+      position.left = padding;
+    } else if (idealLeft + dialogWidth > viewportWidth - padding) {
+      // Too close to right edge, align with right edge - padding
+      position.left = viewportWidth - dialogWidth - padding;
+    } else {
+      // Centered position works fine
+      position.left = idealLeft;
+    }
+
+    // Vertical positioning
+    // First, try to center vertically
+    let idealTop = markerCenterY - dialogHeight / 2;
+
+    // Ensure dialog stays within viewport bounds
+    if (idealTop < padding) {
+      // Too close to top, position below marker
+      position.top = Math.min(
+        rect.bottom + padding,
+        viewportHeight - dialogHeight - padding
+      );
+    } else if (idealTop + dialogHeight > viewportHeight - padding) {
+      // Too close to bottom, position above marker
+      position.top = Math.max(
+        rect.top - dialogHeight - padding,
+        padding
+      );
+    } else {
+      // Centered position works fine
+      position.top = idealTop;
+    }
+
+    // Final safety check to ensure dialog is always visible
+    position.top = Math.max(padding, Math.min(position.top, viewportHeight - dialogHeight - padding));
+
+    return position;
+  }, []);
+
 
   const onHover = useCallback((event: MapMouseEvent) => {
     if (!event.features || !mapRef.current) return;
@@ -299,27 +345,45 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     if (!feature || feature.properties?.cluster) return;
 
     if (feature.geometry && feature.geometry.type === "Point") {
+      event.preventDefault();
+      
       const [longitude, latitude] = feature.geometry.coordinates;
-      const id = feature.properties?.id;
+      const featureId = feature.properties?.id || feature.properties?.fsq_id;
+      const place = searchResults.find(p => p.id === featureId);
+      
+      if (!place) {
+        console.warn('Place not found:', featureId);
+        return;
+      }
 
-      // Update both popup and POI store state
+      const position = calculateDialogPosition({
+        left: event.point.x,
+        top: event.point.y,
+        width: 0,
+        height: 0,
+        right: event.point.x,
+        bottom: event.point.y
+      } as DOMRect);
+
+      setDialogPosition(position);
       setPopupInfo({
         longitude,
         latitude,
-        name: feature.properties?.name || "Unknown location",
-        description: feature.properties?.description,
-        id: id || `${longitude}-${latitude}`,
+        name: place.properties.name,
+        description: place.properties.description,
+        id: place.id,
+        photos: place.properties.photos?.map(photo => ({
+          url: `${photo.prefix}original${photo.suffix}`,
+        })) || [],
       });
       
-      // Update POI store state
-      setMarkerId(id);
-      setHoveredMarkerId(id);
+      setMarkerId(place.id);
+      setHoveredMarkerId(place.id);
     }
-  }, [setMarkerId, setHoveredMarkerId]);
+  }, [searchResults, setMarkerId, setHoveredMarkerId, calculateDialogPosition]);
 
   const onMouseLeave = useCallback(() => {
     setPopupInfo(null);
-    // Clear POI store state
     setMarkerId("");
     setHoveredMarkerId("");
   }, [setMarkerId, setHoveredMarkerId]);
@@ -359,9 +423,6 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       "circle-stroke-color": "#fff",
     },
   };
-
-  // Add the parseActivities function and parsedActivities memo
-  // ... (copy from ChatMap lines 203-252)
 
   // Add the effect to handle finished GPT interaction
   useEffect(() => {
@@ -415,7 +476,20 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       <Source
         id="markers"
         type="geojson"
-        data={points}
+        data={{
+          type: "FeatureCollection",
+          features: searchResults.map(result => ({
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [result.geometry.coordinates[0], result.geometry.coordinates[1]]
+            },
+            properties: {
+              id: result.id,
+              ...result.properties
+            }
+          }))
+        }}
         cluster={true}
         clusterMaxZoom={14}
         clusterRadius={50}
@@ -426,32 +500,78 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       </Source>
 
       {popupInfo && (
-        <Popup
-          longitude={popupInfo.longitude}
-          latitude={popupInfo.latitude}
-          anchor="bottom"
-          closeButton={false}
-          closeOnClick={false}
-          className="rounded-lg shadow-lg"
-        >
-          <div className="p-4 max-w-sm">
-            <h3 className="text-lg font-semibold mb-2">{popupInfo.name}</h3>
-            {popupInfo.description && (
-              <p className="text-sm text-gray-600 mb-3">
-                {popupInfo.description}
-              </p>
-            )}
-            <button
-              onClick={() => {
-                setMarkerId(popupInfo.id);
-                setPopupInfo(null);
+        <Dialog open={!!popupInfo} modal={false}>
+          <DialogPortal>
+            <DialogOverlay 
+              className="fixed inset-0 z-30 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" 
+              onClick={() => setPopupInfo(null)}
+            />
+            <DialogContent
+              id="MapboxMarker"
+              style={{
+                position: 'fixed',
+                ...dialogPosition,
+                transform: 'none'
               }}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition-colors"
+              onPointerEnter={(e) => {
+                e.stopPropagation();
+                if (popupInfo) {
+                  console.log(popupInfo)
+                  setMarkerId(popupInfo.id);
+                  setHoveredMarkerId(popupInfo.id);
+                }
+              }}
+              onPointerLeave={(e) => {
+                e.stopPropagation();
+                setPopupInfo(null);
+                setMarkerId("");
+                setHoveredMarkerId("");
+              }}
+              className="w-[304px] h-fit p-0 rounded-2xl z-50 shadow-lg bg-white transition-all duration-200 ease-in-out"
             >
-              View Details
-            </button>
-          </div>
-        </Popup>
+              <DialogTitle className="hidden">{popupInfo.name}</DialogTitle>
+              <DialogDescription className="hidden">
+                {popupInfo.description}
+              </DialogDescription>
+              <MarkerInfoCard
+                placeData={{
+                  id: popupInfo.id,
+                  type: "Feature",
+                  place_type: ["poi"],
+                  geometry: {
+                    type: "Point",
+                    coordinates: [popupInfo.longitude, popupInfo.latitude]
+                  },
+                  properties: (() => {
+                    const place = searchResults.find(p => p.id === popupInfo.id);
+                    if (!place) {
+                      return {
+                        name: popupInfo.name,
+                        description: popupInfo.description,
+                        coverPhoto: "",
+                        rating: 0,
+                        userRatingCount: 0,
+                        photos: []
+                      };
+                    }
+                    return {
+                      name: place?.properties?.name || popupInfo.name,
+                      coverPhoto: place?.coverPhoto || "",
+                      description: place?.properties?.description,
+                      rating: place?.properties?.rating || 0,
+                      userRatingCount: place?.properties?.userRatingCount || 0,
+                      photos: place?.properties?.photos?.map(photo => ({
+                        url: photo.prefix + "original" + photo.suffix,
+                        width: 800,  // Default width
+                        height: 600  // Default height
+                      })) || []
+                    };
+                  })()
+                }}
+              />
+            </DialogContent>
+          </DialogPortal>
+        </Dialog>
       )}
     </Map>
   );

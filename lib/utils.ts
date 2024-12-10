@@ -97,3 +97,17 @@ export function minutesToTimeString(totalMinutes: number): string {
   return `${hoursStr}:${minutesStr}`;
 }
 
+export const calculateTimeSlot = (startHour: number, startMinute: number) => {
+  let newHours = startHour;
+  let newMinutes = startMinute + 90; // Default 90-minute duration
+
+  if (newMinutes >= 60) {
+    newHours += Math.floor(newMinutes / 60);
+    newMinutes = newMinutes % 60;
+  }
+
+  const endTime = `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
+  const nextStartTime = `${String(newHours).padStart(2, "0")}:${String(newMinutes + 15).padStart(2, "0")}`;
+
+  return { endTime, nextStartTime };
+};

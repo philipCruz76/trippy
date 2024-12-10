@@ -5,7 +5,29 @@ import { useEffect, useState } from "react";
 import { UnsplashImage } from "@/types/unsplash.types";
 import { useCachedState } from "@/lib/hooks/useCachedState";
 import Carousel from "@/components/ui/Carousel";
-import { MapboxPlace } from "@/types/mapbox.types";
+
+type PhotoData = {
+  url: string;
+  width: number;
+  height: number;
+};
+
+type MapboxPlace = {
+  id: string;
+  type: "Feature";
+  place_type: string[];
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  properties: {
+    name: string;
+    description?: string;
+    rating: number;
+    userRatingCount: number;
+    photos: PhotoData[];
+  };
+};
 
 type CarouselSlide = {
   url: string;
@@ -20,23 +42,18 @@ type MarkerInfoCardProps = {
 
 export default function MarkerInfoCard({ placeData }: MarkerInfoCardProps) {
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
-  const [cachedPhotos, setCachedPhotos] = useCachedState<UnsplashImage[]>(
-    `place_photos_${placeData.id}`,
-    []
-  );
 
   useEffect(() => {
-    if (cachedPhotos.length > 0) {
+    const photos = placeData.properties.photos;
+    if (photos && Array.isArray(photos) && photos.length > 0) {
       setSlides(
-        cachedPhotos.map((photo:any) => ({
-          url: photo.urls.regular,
+        photos.map((photo) => ({
+          url: photo.url,
           isLoading: false,
-          width: photo.width,
-          height: photo.height,
         }))
       );
     }
-  }, [cachedPhotos]);
+  }, [placeData.properties.photos]);
 
   return (
     <div className="flex flex-col">

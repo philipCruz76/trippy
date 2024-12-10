@@ -10,7 +10,10 @@ export type MapboxSearchResult = {
       rating?: number;
       userRatingCount?: number;
       mapbox_id?: string;
-      photos?: string[];
+      photos?: {
+        prefix: string;
+        suffix: string;
+      }[];
       openingHours?: {
         periods: Array<{
           open: { day: number; time: string };
@@ -42,6 +45,21 @@ export type MapboxSearchResult = {
     placeId?: string;
     formattedAddress?: string;
     editorialSummary?: string;
+    coverPhoto?: string;
+    socialMedia?: {
+      facebook?: string;
+      instagram?: string;
+      twitter?: string;
+    };
+    website?: string;
+    phone?: string;
+    features?: {
+      payment?: any;
+      food_and_drink?: any;
+      services?: any;
+      amenities?: any;
+      attributes?: any;
+    };
     regularOpeningHours?: {
       weekdayDescriptions: string[];
       periods: Array<{
@@ -50,3 +68,12 @@ export type MapboxSearchResult = {
       }>;
     };
   };
+
+
+  export type MapboxCategory = {
+    canonical_id: string;
+    icon: string;
+    name: string;
+    version: string;
+    uuid: string;
+  }

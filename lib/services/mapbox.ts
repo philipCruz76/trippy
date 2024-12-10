@@ -3,7 +3,6 @@ import { MapboxPlace, MapboxSearchResponse } from "@/types/mapbox.types";
 const MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export async function searchNearbyPlaces(
-  query: string,
   center: [number, number],
   types: string[] = []
 ): Promise<MapboxPlace[]> {
@@ -35,7 +34,7 @@ export async function searchNearbyPlaces(
       `https://api.mapbox.com/search/searchbox/v1/category/${type}?` +
       new URLSearchParams({
         access_token: MAPBOX_API_KEY!,
-        limit: '5',
+        limit: '2',
         origin: `${center[0]},${center[1]}`,
         bbox: bbox,
         language: 'en'

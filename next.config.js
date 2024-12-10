@@ -3,7 +3,7 @@ const createNextIntlPlugin = require("next-intl/plugin");
 const withNextIntl = createNextIntlPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack(config) {
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped.
@@ -11,6 +11,27 @@ const nextConfig = {
 
       fs: false, // the solution
     };
+
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true,
+      layers: true,
+    };
+
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: 'deterministic',
+    };
+
+    config.module.rules.push({
+      test: /\.csv$/,
+      loader: 'csv-loader',
+      options: {
+        dynamicTyping: true,
+        header: true,
+        skipEmptyLines: true
+      }
+    });
 
     return config;
   },
@@ -44,6 +65,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.mapbox.com",
       },
+      {
+        protocol: 'https',
+        hostname: 'fastly.4sqi.net',
+        pathname: '/img/**',
+      }
     ],
   },
   async headers() {
@@ -62,11 +88,11 @@ const nextConfig = {
               // Styles - add Mapbox
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com https://*.mapbox.com",
               // Images - allow Cloudinary, Google, AWS S3, and other image sources
-              "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://lh3.googleusercontent.com https://uenji-file-uploads.s3.eu-north-1.amazonaws.com https://places.googleapis.com https://images.unsplash.com https://api.mapbox.com https://*.mapbox.com",
+              "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://lh3.googleusercontent.com https://uenji-file-uploads.s3.eu-north-1.amazonaws.com https://places.googleapis.com https://images.unsplash.com https://api.mapbox.com https://*.mapbox.com https://fastly.4sqi.net",
               // Fonts
               "font-src 'self' data: https://fonts.gstatic.com",
               // Connect sources for APIs
-              "connect-src 'self' https://*.googleapis.com https://api.openai.com https://api.unsplash.com https://api.mapbox.com https://*.mapbox.com https://events.mapbox.com",
+              "connect-src 'self' https://*.googleapis.com https://api.openai.com https://api.unsplash.com https://api.mapbox.com https://*.mapbox.com https://events.mapbox.com https://api.foursquare.com",
               // Frame sources for embedded content
               "frame-src 'self' https://*.google.com",
               // Media sources

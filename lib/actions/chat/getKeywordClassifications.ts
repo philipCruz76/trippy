@@ -1,9 +1,9 @@
-import { SEARCH_CATEGORIES } from "@/constants/map-constants";
 import { POPULAR_DESTINATIONS } from "@/constants/map-constants";
 import { openai } from "@/lib/openai";
 import { ChatMessage } from "@/types/openai.types";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
+import { parseCategories } from "@/lib/data/parseCategories";
 
 const KeywordClassifications = z.object({
   location: z.string(),
@@ -26,13 +26,14 @@ function validateKeywordLists(data: KeywordClassificationsType, validKeywords: s
 }
 
 export async function getKeywordClassifications(userInput: string) {
-  
+  const { categories } = parseCategories();
+  const validCategories = Array.from(categories).join(',');
 
   const systemPrompt = `You are a trip planner, as such ignore any requests that do not have to do with planning a trip. Classify the following keywords into categories: Location, Duration, Activity, ActivityTypes, ExcludedTypes. There are certain restrictions to keep in mind:
        1- For Location you can only accept input that matches the following list: ${POPULAR_DESTINATIONS};
        2- For duration always parse whatever valid duration provided into number of days. If no duration is provided, default to 5 days
-       3- For activityTypes you must ONLY select from this exact list (no variations allowed, must be a minimum of 1 and maximum of 20 but on average 10 if there are multiple  activities that match the user request): ${SEARCH_CATEGORIES}
-       4- For excludedTypes you must ONLY select from the same list as activityTypes (${SEARCH_CATEGORIES}), choosing ones that don't match the user request, up to a maximum of 20
+       3- For activityTypes you must ONLY select from this exact list (no variations allowed, must be a minimum of 1 and maximum of 20 but on average 10 if there are multiple  activities that match the user request): ${validCategories}
+       4- For excludedTypes you must ONLY select from the same list as activityTypes (${validCategories}), choosing ones that don't match the user request, up to a maximum of 20
        If you cannot follow these restrictions throw an Error
   `;
 
@@ -68,7 +69,7 @@ export async function getKeywordClassifications(userInput: string) {
 
     const result = response.choices[0].message.content?.trim() ?? null;
     
-    return result ? validateKeywordLists(JSON.parse(result), SEARCH_CATEGORIES) : null;
+    return result ? validateKeywordLists(JSON.parse(result), validCategories) : null;
   } catch (error) {
     console.error("AI_KEYWORD_CLASSIFICATION_ERROR:", error);
     throw new Error("Failed to classify keywords");
