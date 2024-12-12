@@ -43,6 +43,7 @@ const TripBanner = ({
           src={displayedImage}
           alt={displayedTitle}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="rounded-[inherit] object-cover object-center rounded-b-2xl"
         />
         <div className="absolute inset-0 rounded-b-2xl bg-gradient-to-b from-neutral-100 to-neutral-900 opacity-20" />

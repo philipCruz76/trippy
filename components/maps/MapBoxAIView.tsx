@@ -105,7 +105,7 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
 
 
   const parseActivities = (
-    activities: any[],
+    activities: DailyItineraryType["days"][number]["activities"],
     startTime: string = "09:00",
   ): ActivityType[] => {
     let currentTime = startTime;
@@ -123,14 +123,6 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       const endTime = `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
       currentTime = endTime;
 
-      const location = activity.location ? {
-        lat: activity.location.latitude || 0,
-        lng: activity.location.longitude || 0,
-      } : {
-        lat: 0,
-        lng: 0
-      };
-
       // Find the corresponding place in searchResults to get the cover photo
       const place = searchResults.find(p => p.id === activity.id);
       const coverPhoto = place?.properties?.photos?.[0]?.prefix 
@@ -141,10 +133,13 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
         id: activity.id,
         title: activity.name,
         cover: coverPhoto,
-        activityType: activity.activityType || "place",
-        location: location,
+        activityType:  "place",
+        location: {
+          lat: activity.location.lat,
+          lng: activity.location.lng
+        },
         manualInput: false,
-        summary: activity.summary || "",
+        summary: activity.editorialSummary || "",
         durationFrom: startTime,
         durationTo: endTime,
       };
@@ -209,8 +204,6 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
                   }
                   return {
                     ...activity,
-                    id: place.id,
-                    location: keywords.location,
                     name: activity.name || place.properties.name,
                     summary: activity.editorialSummary || "",
                   };
@@ -516,7 +509,6 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
               onPointerEnter={(e) => {
                 e.stopPropagation();
                 if (popupInfo) {
-                  console.log(popupInfo)
                   setMarkerId(popupInfo.id);
                   setHoveredMarkerId(popupInfo.id);
                 }

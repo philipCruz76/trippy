@@ -18,10 +18,10 @@ export async function POST(request: Request) {
       activities: mapboxToGPTInput(inputDestinations),
       duration,
     };
-    
-    const response = await getDailyItinerary(chatInput)
-    
-    if (!response ) {
+
+    const response = await getDailyItinerary(chatInput);
+
+    if (!response) {
       return new NextResponse("Error getting response from Trippy", {
         status: 400,
       });

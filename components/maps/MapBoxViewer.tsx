@@ -1,30 +1,27 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import Map, { Source, Layer, MapRef, ViewStateChangeEvent } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { 
-  GeoJSONSource, 
-  MapLayerMouseEvent,
+  GeoJSONSource,
   CircleLayerSpecification,
-  SymbolLayerSpecification
+  SymbolLayerSpecification,
+  MapMouseEvent
 } from 'mapbox-gl';
+import { TripDetails } from '@/types/trip.types';
+import { usePOIDrawerStore } from "@/lib/stores/poi-drawer-store";
+import { usePOIStore } from "@/lib/stores/poi-store";
+import POIDrawer from "./POIDrawer";
 
 type MapBoxViewerProps = {
-  defaultCenter?: [number, number];
-  defaultZoom?: number;
-  markers?: Array<{
-    lat: number;
-    lng: number;
-    name?: string;
-    color?: string;
-  }>;
-  onMarkerClick?: (markerId: string) => void;
+  defaultCenter: [number, number];
+  defaultZoom: number;
+  markers: TripDetails['itinerary']['dailyTrip'][number]['itinerary'][number]['activities'];
 };
 
 const MapBoxViewer = ({ 
-  defaultCenter = [-74.5, 40],
-  defaultZoom = 9,
-  markers = [],
-  onMarkerClick
+  defaultCenter,
+  defaultZoom,
+  markers,
 }: MapBoxViewerProps) => {
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState({
@@ -32,20 +29,26 @@ const MapBoxViewer = ({
     latitude: defaultCenter[1],
     zoom: defaultZoom
   });
+  const [selectedPOI, setSelectedPOI] = useState<TripDetails['itinerary']['dailyTrip'][number]['itinerary'][number]['activities'][0] | null>(null);
+
+  const { setMarkerId, setHoveredMarkerId } = usePOIStore();
+  const { setShowDrawer } = usePOIDrawerStore();
 
   const points = {
     type: 'FeatureCollection',
     features: markers.map((marker) => ({
       type: 'Feature',
       properties: {
-        id: `${marker.lat}-${marker.lng}`,
+        id: `${marker.location.lat}-${marker.location.lng}`,
         cluster: false,
-        name: marker.name,
-        color: marker.color || '#FF5500'
+        name: marker.activityName,
+        color: '#FF5500',
+        description: marker.summary,
+        photos: marker.photos
       },
       geometry: {
         type: 'Point',
-        coordinates: [marker.lng, marker.lat]
+        coordinates: [marker.location.lng, marker.location.lat]
       }
     }))
   };
@@ -99,24 +102,45 @@ const MapBoxViewer = ({
     }
   };
 
-  const onClick = useCallback((event: MapLayerMouseEvent) => {
+
+  const handleClick = useCallback((event: MapMouseEvent) => {
     const feature = event.features?.[0];
-    if (!feature || !mapRef.current) return;
+    if (!feature) return;
 
-    const clusterId = feature.properties?.cluster_id;
-    const mapboxSource = mapRef.current.getSource('markers') as GeoJSONSource;
+    if (feature.properties?.cluster) {
+      const clusterId = feature.properties.cluster_id;
+      const mapboxSource = mapRef.current?.getSource('markers') as GeoJSONSource;
 
-    mapboxSource.getClusterExpansionZoom(clusterId, (err, zoom) => {
-      if (err || !feature.geometry) return;
+      mapboxSource.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err || !feature.geometry) return;
 
-      const coordinates = (feature.geometry as any).coordinates;
+        const coordinates = (feature.geometry as any).coordinates;
+        mapRef.current?.easeTo({
+          center: coordinates,
+          zoom: zoom || defaultZoom,
+          duration: 500
+        });
+      });
+    } else if (feature.properties) {
+      const clickedMarker = markers.find(
+        marker => marker.activityName === feature.properties?.name
+      );
+      setSelectedPOI(clickedMarker || null);
+      setHoveredMarkerId(clickedMarker?.place_id || '');
+      setMarkerId(clickedMarker?.place_id || '');
+      setShowDrawer(true);
+    }
+  }, [defaultZoom, setHoveredMarkerId, setMarkerId, setShowDrawer, markers]);
+
+  useEffect(()=> {
+    if (selectedPOI) {
       mapRef.current?.easeTo({
-        center: coordinates,
-        zoom: zoom || defaultZoom,
+        center: [selectedPOI.location.lng, selectedPOI.location.lat],
+        zoom: 13,
         duration: 500
       });
-    });
-  }, [defaultZoom]);
+    }
+  }, [selectedPOI]);
 
   return (
     <Map
@@ -126,8 +150,8 @@ const MapBoxViewer = ({
       style={{ width: '100%', height: '500px' }}
       mapStyle="mapbox://styles/mapbox/streets-v12"
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-      interactiveLayerIds={['clusters']}
-      onClick={onClick}
+      interactiveLayerIds={['clusters', 'unclustered-point']}
+      onClick={handleClick}
     >
       <Source
         id="markers"
@@ -140,6 +164,7 @@ const MapBoxViewer = ({
         <Layer {...clusterLayer} />
         <Layer {...clusterCountLayer} />
         <Layer {...unclusteredPointLayer} />
+        {selectedPOI && <POIDrawer placeData={selectedPOI} />}
       </Source>
     </Map>
   );

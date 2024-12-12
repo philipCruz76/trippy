@@ -88,7 +88,7 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                     {dayIndex % 2 === 0 ? (
                       <>
                         <div className="top-[calc(var(--header-height)*2+theme(space.4))] sticky">
-                          <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[31.25rem]">
+                          <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[20rem] desktop:h-[31.25rem] py-[8px]">
                             <Carousel
                               slides={activity.photos.map((photo) => ({
                                 url: photo,
@@ -165,7 +165,7 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                           </div>
                         </div>
                         <div className="col-start-2 top-[calc(var(--header-height)*2+theme(space.4))] sticky">
-                          <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[31.25rem]">
+                        <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[20rem] desktop:h-[31.25rem] py-[8px]">
                             <Carousel
                               slides={activity.photos.map((photo) => ({
                                 url: photo,

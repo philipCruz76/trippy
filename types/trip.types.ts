@@ -13,6 +13,7 @@ export type ItineraryDestination = {
 };
 
 export type GPTDestinationInput = {
+  id: string;
   index: number;
   name: string;
   description: string;

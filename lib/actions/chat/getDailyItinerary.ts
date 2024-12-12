@@ -15,6 +15,10 @@ const DailyItinerary = z.object({
       id:z.string(),
       index: z.number(),
       name: z.string(),
+      location: z.object({
+        lat: z.number(),
+        lng: z.number()
+      }),
       editorialSummary: z.string().optional(),
     }))
   }))

@@ -11,7 +11,7 @@ type TripOverviewProps = {
 };
 
 const TripOverview = ({ overview, isOwner }: TripOverviewProps) => {
-  const { overviewSummary, setOverviewSummary } = useTripEditorStore();
+  const { overviewSummary, setOverviewSummary , resetStore} = useTripEditorStore();
 
   // Initialize the summary in the store if it's not already set
   useEffect(() => {
@@ -20,6 +20,12 @@ const TripOverview = ({ overview, isOwner }: TripOverviewProps) => {
     }
   }, [overview.summary, overviewSummary, setOverviewSummary]);
 
+  useEffect(() => {
+    if(!isOwner) return;
+    return ()=> {
+      resetStore();
+    }
+  },[])
   return (
     <div className="py-9 border-t border-separator scroll-mt-[112px] max-w-[1200px] mx-auto px-4">
       <div className="relative z-0">

@@ -1,16 +1,17 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { MapboxProvider } from '@/lib/contexts/MapboxContext';
 import MapBoxViewer from '@/components/maps/MapBoxViewer';
+import { TripDetails } from '@/types/trip.types';
 
 const MemoizedMapsViewer = memo(MapBoxViewer);
 const MemoizedMapsProvider = memo(MapboxProvider);
 
-const markers = [
-  { id: '1', latitude: 40.7128, longitude: -74.0060 }, // New York
-  { id: '2', latitude: 34.0522, longitude: -118.2437 }, // Los Angeles
-];
+type TripLocationsProps = {
+  POIs: TripDetails['itinerary']['dailyTrip'][number]['itinerary'][number]['activities']
+}
 
-const TripLocationsContent = ({POILocations}: {POILocations: {lat: number, lng: number}[]}) => {
+const TripLocationsContent = ({POIs}: TripLocationsProps) => {
+
   return (
     <div className="py-9 border-t border-separator scroll-mt-[112px]">
       <h3 className="mb-3 text-4xl font-semibold text-center leading-tight">
@@ -19,10 +20,9 @@ const TripLocationsContent = ({POILocations}: {POILocations: {lat: number, lng: 
       <div className="h-[600px] w-full rounded-xl overflow-hidden">
         <MemoizedMapsProvider>
           <MemoizedMapsViewer 
-           defaultCenter={[4.9041, 52.3676]} // Center of Amsterdam
-           defaultZoom={10}
-           markers={POILocations}
-           onMarkerClick={(id) => console.log(`Clicked marker ${id}`)}
+            defaultCenter={[POIs[0].location.lng, POIs[0].location.lat]} 
+            defaultZoom={11}
+            markers={POIs}
           />
         </MemoizedMapsProvider>
       </div>

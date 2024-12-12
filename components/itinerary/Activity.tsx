@@ -53,7 +53,7 @@ const Activity = ({
                   }`}
                   loading={priority ? "eager" : "lazy"}
                   priority={priority}
-                  onLoadingComplete={() => setImageLoading(false)}
+                  onLoad={() => setImageLoading(false)}
                   onError={handleImageError}
                 />
               </div>

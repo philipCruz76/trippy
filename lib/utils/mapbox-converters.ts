@@ -3,6 +3,7 @@ import { MapboxPlace } from "@/types/mapbox.types";
 
 export function mapboxToGPTInput(places: MapboxPlace[]): GPTDestinationInput[] {
   return places.map((place, index) => ({
+    id: place.id,
     index,
     name: place.properties.name,
     description: place.properties.description || "",

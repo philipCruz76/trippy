@@ -58,19 +58,6 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
     }
   };
 
-  const placesLocations = useMemo(() => 
-    initialData.itinerary.dailyTrip.reduce((ids: {lat: number, lng: number}[], day) => {
-      day.itinerary.forEach(itinerary => {
-        itinerary.activities.forEach(activity => {
-          if (activity.location) {
-            ids.push(activity.location);
-          }
-        });
-      });
-      return ids;
-    }, []),
-    [initialData.itinerary.dailyTrip]
-  );
 
   const handlePublish = async () => {
     try {
@@ -226,6 +213,33 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const extractPOILocations = (initialData: TripDetails) => {
+    // Extract all activities from all days and flatten them into a single array
+    const POIs = initialData.itinerary.dailyTrip
+      .map(day => 
+        day.itinerary.flatMap(item => 
+          item.activities.map(activity => ({
+            location: {
+              lat: activity.location.lat,
+              lng: activity.location.lng,
+            },
+            summary: activity.summary,
+            photos: activity.photos,
+            place_id: activity.place_id,
+            activityName: activity.activityName,
+            formatted_address: activity.formatted_address,
+            activityType: activity.activityType || '',
+            time: activity.time || '',
+          }))
+        )
+      )
+      .flat();
+
+    return POIs;
+  };
+
+  const placesLocations = extractPOILocations(initialData);
 
   return (
     <div className="flex flex-col min-h-[100dvh] px-container pt-16">
@@ -457,7 +471,7 @@ export default function TripDetailsClient({ tripId, initialData }: TripDetailsCl
         </div>
 
         <div ref={locationsRef}>
-          <TripLocations POILocations={placesLocations} />
+          <TripLocations POIs={placesLocations} />
         </div>
       </div>
     </div>

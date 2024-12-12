@@ -5,15 +5,16 @@ import {
   DrawerContent,
   DrawerOverlay,
   DrawerPortal,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import Carousel from "../ui/Carousel";
-import { formatNum } from "@/lib/utils";
 import { usePOIStore } from "@/lib/stores/poi-store";
 import { useState, useEffect, useCallback } from "react";
 import Image from 'next/image';
+import { TripDetails } from "@/types/trip.types";
 
 type POIDrawerProps = {
-  placeData: google.maps.places.Place;
+  placeData: TripDetails['itinerary']['dailyTrip'][number]['itinerary'][number]['activities'][0];
 };
 
 const POIDrawer = ({ placeData }: POIDrawerProps) => {
@@ -28,7 +29,6 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
 
   // Preload images and get their dimensions
   const preloadImage = useCallback(async (url: string) => {
-    // Use a cache to avoid reloading the same images
     const cache = new Map<string, { width: number; height: number }>();
     
     if (cache.has(url)) {
@@ -46,19 +46,17 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
     });
   }, []);
 
-  // Progressive loading of photos
   useEffect(() => {
     if (!placeData.photos) return;
 
     const loadPhotos = async () => {
-      // Initialize loading states
-      const initialPhotos = placeData.photos!.map(photo => ({
-        url: photo.getURI(),
+      const photos = placeData.photos || [];
+      const initialPhotos = photos.map(photo => ({
+        url: photo,
         isLoading: true
       }));
       setCoverPhotos(initialPhotos);
 
-      // Load photos in parallel with loading indicators
       const photoPromises = initialPhotos.map(async (photo, index) => {
         try {
           const loadedPhoto = await preloadImage(photo.url);
@@ -78,7 +76,7 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
     loadPhotos();
   }, [placeData.photos, preloadImage]);
 
-  const isVisible = showDrawer && markerId === placeData.id;
+  const isVisible = showDrawer && markerId === placeData.place_id;
   
   return (
     <Drawer
@@ -91,13 +89,15 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
     >
       <DrawerPortal>
         <DrawerOverlay className="fixed inset-0 z-50 bg-none" />
+        <DrawerTitle>
+          {placeData.activityName}
+        </DrawerTitle>
         <DrawerContent
           onInteractOutside={() => {
             setShowDrawer(false);
           }}
           className="fixed border-gray-300/80 shadow-md rounded-tl-xl rounded-bl-xl right-0 bottom-0 z-50 mt-24 flex min-h-[100dvh] w-[450px] flex-col gap-4 bg-white px-4 py-6"
         >
-          {/* POI Photo Section */}
           <div className="h-[300px] w-full">
             <Carousel
               slides={coverPhotos.map(photo => ({
@@ -129,12 +129,11 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
             />
           </div>
 
-          {/* Place Data */}
           <div className="w-full p-3 flex flex-col h-full">
-            <h2 className="flex justify-between text-left font-medium font-sans text-2xl">
-              {placeData.displayName}
+            <h2 className="flex flex-row justify-between text-left font-medium font-sans text-2xl">
+              {placeData.activityName}
               <span className="flex flex-row items-center text-base font-normal">
-                {placeData.rating}{" "}
+                {"4.5"}{" "}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -146,16 +145,16 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
                 </svg>
                 <span className="text-sm text-gray-400">
                   {"   ("}
-                  {!placeData.userRatingCount ? 0: formatNum(placeData.userRatingCount!)}
-                  {")"}
+                  {"0"}
+                  {")"} 
                 </span>
               </span>
             </h2>
 
-            <span className="py-4 text-sm">{placeData.editorialSummary}</span>
+            <span className="py-4 text-sm">{placeData.summary}</span>
 
             <span className="text-sm text-gray-400">
-              {placeData.formattedAddress}
+              {placeData.formatted_address}
             </span>
           </div>
         </DrawerContent>
