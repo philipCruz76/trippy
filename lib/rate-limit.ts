@@ -8,7 +8,7 @@ export async function rateLimiter(req: NextRequest) {
     const token = await getToken({ req });
     const ip = req.ip ?? req.headers.get('x-forwarded-for') ?? 'anonymous';
     const timeWindow = 60; // 1 minute in seconds
-    const maxRequests = token ? 100 : 30; // Higher limit for authenticated users
+    const maxRequests = token ? 100 : 40; // Higher limit for authenticated users
 
     const key = `rate-limit:${ip}`;
     
