@@ -27,6 +27,12 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
     location: "",
     activityTypes: [""],
     excludedTypes: [""],
+    foundKeywords: {
+      location: false,
+      duration: false,
+      activity: false,
+      activityTypes: false,
+    },
   },
   geoLocation: {
     lat: 0,

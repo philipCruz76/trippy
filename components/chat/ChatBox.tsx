@@ -1,19 +1,27 @@
 "use client";
 
 import { useGPTResponseStore } from "@/lib/stores/gpt-response-store";
+import { useChatMessagesStore } from "@/lib/stores/chat-messages-store";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import TextareaAutoSize from "react-textarea-autosize";
+
 type ChatBoxProps = {};
 
 const ChatBox = ({}: ChatBoxProps) => {
-  const {setKeywords, setGeoLocation, setGptInteractionStarted} = useGPTResponseStore();
+  const { setKeywords, setGeoLocation, setGptInteractionStarted } = useGPTResponseStore();
+  const { addMessage, setIsLoading } = useChatMessagesStore();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [input, setInput] = useState<string>("");
 
   const sendMessage = () => {
     if (!input) return;
     setGptInteractionStarted(true);
+    setIsLoading(true);
+    
+    // Add user message to chat
+    addMessage(input, true);
+
     fetch("/api/messages", {
       method: "POST",
       body: JSON.stringify({ text: input, chatId: "cenas" }),
@@ -21,10 +29,16 @@ const ChatBox = ({}: ChatBoxProps) => {
       .then(async (res) => {
         const gptReply = await res.json();
         if(gptReply.aiLocation === "Error" || !gptReply.aiLocation) throw new Error("CHAT_KEYWORD_ERROR");
+        
+        // Add AI response to chat
+        addMessage("I've found some interesting places based on your request. Let me plan an itinerary for you.", false);
+        
         setKeywords(gptReply.aiResponse);
         setGeoLocation(gptReply.aiLocation);
+        setIsLoading(false);
       })
       .catch((error) => {
+        setIsLoading(false);
         toast.error(error.message);
       });
 

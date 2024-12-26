@@ -1,7 +1,7 @@
 import {
   getKeywordClassifications,
 } from "@/lib/actions/chat/getKeywordClassifications";
-import { getLatLng, LatLngResult } from "@/lib/actions/chat/getLatLng";
+import { getLatLng } from "@/lib/actions/chat/getLatLng";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -9,36 +9,42 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { text, chatId } = body;
 
-    const response = await getKeywordClassifications(text).then(
-      async (result) => {
-        if (result) {
-          return result;
-        }
-      },
-    );
+    const keywordResult = await getKeywordClassifications(text);
    
-    if (!response || response.location === "Error") {
-      return new NextResponse("Error getting response from Trippy", {
-        status: 400,
-      });
+    if (!keywordResult.classification || keywordResult.classification.location === "Error") {
+      return NextResponse.json({ 
+        aiResponse: null,
+        aiLocation: null,
+        message: keywordResult.message
+      }, { status: 400 });
     }
 
-    const location = await getLatLng(response.location).then((result) => {
-      if (result) {
-        const parsedResult = JSON.parse(result) as LatLngResult;
-        return parsedResult;
+    // Only proceed with location lookup if we have a valid location
+    if (keywordResult.classification.foundKeywords.location) {
+      const location = await getLatLng(keywordResult.classification.location);
+
+      if (location) {
+        return NextResponse.json({ 
+          aiResponse: keywordResult.classification, 
+          aiLocation: JSON.parse(location),
+          message: keywordResult.message
+        });
       }
+    }
+
+    // Return just the message if we're still gathering information
+    return NextResponse.json({ 
+      aiResponse: keywordResult.classification,
+      aiLocation: null,
+      message: keywordResult.message
     });
 
-    if (!location) {
-      return new NextResponse("Error getting location from Trippy", {
-        status: 400,
-      });
-    }
-
-    return NextResponse.json({ aiResponse: response, aiLocation: location });
   } catch (error) {
     console.error(error);
-    return new NextResponse("MESSAGE_SEND_ERROR", { status: 500 });
+    return NextResponse.json({ 
+      aiResponse: null,
+      aiLocation: null,
+      message: "I encountered an error. Could you try again?"
+    }, { status: 500 });
   }
 }

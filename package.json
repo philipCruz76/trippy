@@ -45,7 +45,7 @@
     "lucide-react": "^0.408.0",
     "mapbox-gl": "^3.8.0",
     "next": "^14.2.15",
-    "next-auth": "^4.24.8",
+    "next-auth": "^4.24.11",
     "next-intl": "^3.17.0",
     "openai": "^4.58.0",
     "pexels": "^1.4.0",

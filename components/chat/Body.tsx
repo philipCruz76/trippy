@@ -3,6 +3,7 @@ import { DailyItineraryType } from "@/lib/actions/chat/getDailyItinerary";
 import { KeywordClassificationsType } from "@/lib/actions/chat/getKeywordClassifications";
 import { LatLngResult } from "@/lib/actions/chat/getLatLng";
 import { usePOIStore } from "@/lib/stores/poi-store";
+import { useChatMessagesStore } from "@/lib/stores/chat-messages-store";
 import { useCallback, useMemo } from "react";
 
 type BodyProps = {
@@ -12,7 +13,27 @@ type BodyProps = {
 };
 
 const Body = ({ keywords, location, itinerary }: BodyProps) => {
+  const { messages, isLoading } = useChatMessagesStore();
   const { setMarkerId, setHoveredMarkerId } = usePOIStore();
+
+  const renderMessages = () => {
+    return messages.map((message) => (
+      <div
+        key={message.id}
+        className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
+      >
+        <div
+          className={`max-w-[70%] rounded-lg px-4 py-2 ${
+            message.isUser
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-800'
+          }`}
+        >
+          {message.text}
+        </div>
+      </div>
+    ));
+  };
 
   const activityNames = useCallback((day: DailyItineraryType["days"][0]) => 
     day.activities.map((activity) => activity.name),
@@ -84,21 +105,33 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
     [itinerary.days, renderDay]
   );
 
+  // Show loading indicator only when gathering information
+  const showLoadingIndicator = isLoading && (!keywords.foundKeywords?.location || 
+    !keywords.foundKeywords?.duration || 
+    !keywords.foundKeywords?.activityTypes);
+
   return (
-    <div className="flex flex-col gap-2 px-2 h-fit w-[45dvw]">
-      <div className="border rounded-2xl hover:bg-gray-200 hover:bg-opacity-30 text-sm w-full h-fit items-start text-start justify-start overflow-x-scroll text-slate-600 py-1 px-4">
-        <span>
-          Location:{keywords.location} <br />
-          Duration: {keywords.duration} <br />
-          Activity:{keywords.activity} <br />
-          Included_Types:{`${keywords.activityTypes.join(",")}`} <br />
-          Excluded_Types:{`${keywords.excludedTypes?.join(",")}`}
-        </span>
-      </div>
-      <div className="border rounded-2xl hover:bg-gray-200 hover:bg-opacity-30 text-sm w-full items-start text-start justify-start overflow-hidden text-slate-600 py-1 px-4">
-        {`Lat: ${location.lat}, Lng: ${location.lng}`}
-      </div>
-      {itinerary.days && itinerary.days.length > 0 ? (
+    <div className="flex flex-col space-y-4 p-4">
+      {renderMessages()}
+      
+      {showLoadingIndicator && (
+        <div className="flex justify-start mb-4">
+          <div className="bg-gray-100 rounded-lg px-4 py-2">
+            <div className="flex gap-1">
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Only show itinerary when we have all required information */}
+      {keywords.foundKeywords?.location && 
+       keywords.foundKeywords?.duration && 
+       keywords.foundKeywords?.activityTypes && 
+       itinerary.days && 
+       itinerary.days.length > 0 && (
         <div className="border rounded-2xl hover:bg-gray-200 hover:bg-opacity-30 text-sm w-full h-fit items-start text-start justify-start overflow-hidden text-slate-600 py-1 px-4">
           <p>
             <br />
@@ -107,7 +140,7 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
           </p>
           {renderedDays}
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
