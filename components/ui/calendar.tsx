@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
   className,
@@ -27,21 +27,21 @@ function Calendar({
         nav: "flex items-center gap-1",
         nav_button_previous: cn(
           buttonVariants({ variant: "outline", size: "icon" }),
-          "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-30"
+          "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-30",
         ),
         nav_button_next: cn(
           buttonVariants({ variant: "outline", size: "icon" }),
-          "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-30"
+          "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-30",
         ),
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
         ),
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell: cn(
           "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
-          "first:text-red-500 last:text-red-500"
+          "first:text-red-500 last:text-red-500",
         ),
         row: "flex w-full mt-2",
         cell: cn(
@@ -49,31 +49,31 @@ function Calendar({
           "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
           "[&:has([aria-selected].day-range-end)]:rounded-r-md",
           "[&:has([aria-selected].day-outside)]:bg-accent/50",
-          "[&:has([aria-selected])]:bg-accent"
+          "[&:has([aria-selected])]:bg-accent",
         ),
         day: cn(
           "h-10 w-10 p-0 font-normal",
           "rounded-full hover:bg-accent hover:text-accent-foreground",
           "aria-selected:opacity-100",
-          "transition-all duration-200 ease-in-out"
+          "transition-all duration-200 ease-in-out",
         ),
         day_range_end: "day-range-end",
         day_selected: cn(
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-          "rounded-full transition-transform hover:scale-105"
+          "rounded-full transition-transform hover:scale-105",
         ),
         day_today: cn(
           "bg-accent text-accent-foreground",
-          "border-2 border-primary"
+          "border-2 border-primary",
         ),
         day_outside: cn(
           "day-outside text-muted-foreground opacity-50",
-          "aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30"
+          "aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         ),
         day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
         day_range_middle: cn(
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
-          "rounded-none"
+          "rounded-none",
         ),
         day_hidden: "invisible",
         ...classNames,
@@ -84,8 +84,8 @@ function Calendar({
       }}
       {...props}
     />
-  )
+  );
 }
-Calendar.displayName = "Calendar"
+Calendar.displayName = "Calendar";
 
-export { Calendar }
+export { Calendar };

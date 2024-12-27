@@ -1,4 +1,4 @@
-"use server"
+"use server";
 import { openai } from "@/lib/openai";
 import { ChatMessage } from "@/types/openai.types";
 import { GPTItineraryStructure } from "@/types/trip.types";
@@ -8,20 +8,24 @@ import { z } from "zod";
 const DailyItinerary = z.object({
   title: z.string(),
   summary: z.string(),
-  days: z.array(z.object({
-    title: z.string(),
-    description: z.string(),
-    activities: z.array(z.object({
-      id:z.string(),
-      index: z.number(),
-      name: z.string(),
-      location: z.object({
-        lat: z.number(),
-        lng: z.number()
-      }),
-      editorialSummary: z.string().optional(),
-    }))
-  }))
+  days: z.array(
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      activities: z.array(
+        z.object({
+          id: z.string(),
+          index: z.number(),
+          name: z.string(),
+          location: z.object({
+            lat: z.number(),
+            lng: z.number(),
+          }),
+          editorialSummary: z.string().optional(),
+        }),
+      ),
+    }),
+  ),
 });
 
 export type DailyItineraryType = z.infer<typeof DailyItinerary>;
@@ -68,7 +72,7 @@ const ASSISTANT_EXAMPLE = {
       ]
     }
   ]
-}`
+}`,
 };
 
 const ASSISTANT_EXAMPLE_1 = {
@@ -112,7 +116,7 @@ const ASSISTANT_EXAMPLE_1 = {
       ]
     }
   ]
-}`
+}`,
 };
 
 const ASSISTANT_EXAMPLE_2 = {
@@ -171,13 +175,12 @@ const ASSISTANT_EXAMPLE_2 = {
       ]
     }
   ]
-}`
+}`,
 };
 
 export default async function getDailyItinerary(
   chatInput: GPTItineraryStructure,
 ) {
- 
   // 5. Simplified user prompt
   const userPrompt = `Create a ${chatInput.duration}-day itinerary for the following location: ${chatInput.location}. 
   Here are ALL 20 activities that MUST be included in the itinerary (use each activity exactly once and do not create new ones):
@@ -197,14 +200,14 @@ export default async function getDailyItinerary(
     { role: "assistant", content: ASSISTANT_EXAMPLE.content },
     { role: "assistant", content: ASSISTANT_EXAMPLE_1.content },
     { role: "assistant", content: ASSISTANT_EXAMPLE_2.content },
-    { role: "user", content: userPrompt }
+    { role: "user", content: userPrompt },
   ];
 
   try {
     // 6. Optimized API call settings
     const response = await openai.beta.chat.completions.parse({
       model: "gpt-4o-mini",
-      max_tokens: 4000, 
+      max_tokens: 4000,
       messages: message,
       temperature: 0.1,
       n: 1,
@@ -213,17 +216,15 @@ export default async function getDailyItinerary(
 
     const itinerary = response.choices[0].message.content?.trim();
     if (!itinerary) throw new Error("AI_ITINERARY_PLANNING_ERROR");
-    
+
     // 7. Direct parsing and mapping
     const parsedResult = JSON.parse(itinerary) as DailyItineraryType;
-
 
     return {
       title: parsedResult.title,
       summary: parsedResult.summary,
-      days: parsedResult.days
+      days: parsedResult.days,
     };
-    
   } catch (error) {
     console.error("AI_ITINERARY_PLANNING_ERROR:", error);
     return null;

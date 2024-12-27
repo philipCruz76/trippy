@@ -1,9 +1,6 @@
 "use client";
 import { useSignInModalStore } from "@/lib/stores/signin-modal-store";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMediaQuery } from "react-responsive";
@@ -14,7 +11,7 @@ type SignInModalProps = {};
 
 const SignInModal = ({}: SignInModalProps) => {
   const { showModal, setShowModal } = useSignInModalStore();
-  const isDesktop = useMediaQuery({minWidth:900});
+  const isDesktop = useMediaQuery({ minWidth: 900 });
 
   if (isDesktop) {
     return (

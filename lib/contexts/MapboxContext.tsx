@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { Map } from 'mapbox-gl';
-import type { MapboxPlace } from '@/types/mapbox.types';
+import { createContext, useContext, useEffect, useState } from "react";
+import type { Map } from "mapbox-gl";
+import type { MapboxPlace } from "@/types/mapbox.types";
 
 interface MapboxContextType {
   map: Map | null;
@@ -19,14 +19,14 @@ export function MapboxProvider({ children }: { children: React.ReactNode }) {
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
   return (
-    <MapboxContext.Provider 
-      value={{ 
-        map, 
-        setMap, 
-        searchResults, 
+    <MapboxContext.Provider
+      value={{
+        map,
+        setMap,
+        searchResults,
         setSearchResults,
         selectedMarkerId,
-        setSelectedMarkerId
+        setSelectedMarkerId,
       }}
     >
       {children}
@@ -37,7 +37,7 @@ export function MapboxProvider({ children }: { children: React.ReactNode }) {
 export const useMapbox = () => {
   const context = useContext(MapboxContext);
   if (!context) {
-    throw new Error('useMapbox must be used within MapboxProvider');
+    throw new Error("useMapbox must be used within MapboxProvider");
   }
   return context;
-}; 
+};

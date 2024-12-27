@@ -13,4 +13,4 @@ export const useCachedState = <T>(key: string, initialValue: T) => {
   }, [key, state]);
 
   return [state, setState];
-}
+};

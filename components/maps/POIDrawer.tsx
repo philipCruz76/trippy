@@ -10,40 +10,47 @@ import {
 import Carousel from "../ui/Carousel";
 import { usePOIStore } from "@/lib/stores/poi-store";
 import { useState, useEffect, useCallback } from "react";
-import Image from 'next/image';
+import Image from "next/image";
 import { TripDetails } from "@/types/trip.types";
 
 type POIDrawerProps = {
-  placeData: TripDetails['itinerary']['dailyTrip'][number]['itinerary'][number]['activities'][0];
+  placeData: TripDetails["itinerary"]["dailyTrip"][number]["itinerary"][number]["activities"][0];
 };
 
 const POIDrawer = ({ placeData }: POIDrawerProps) => {
   const { showDrawer, setShowDrawer } = usePOIDrawerStore();
   const { markerId, setMarkerId } = usePOIStore();
-  const [coverPhotos, setCoverPhotos] = useState<Array<{
-    url: string;
-    isLoading: boolean;
-    width?: number;
-    height?: number;
-  }>>([]);
+  const [coverPhotos, setCoverPhotos] = useState<
+    Array<{
+      url: string;
+      isLoading: boolean;
+      width?: number;
+      height?: number;
+    }>
+  >([]);
 
   // Preload images and get their dimensions
   const preloadImage = useCallback(async (url: string) => {
     const cache = new Map<string, { width: number; height: number }>();
-    
+
     if (cache.has(url)) {
       return { url, ...cache.get(url)! };
     }
 
-    return new Promise<{ url: string; width: number; height: number }>((resolve) => {
-      const img = document.createElement('img');
-      img.onload = () => {
-        const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
-        cache.set(url, dimensions);
-        resolve({ url, ...dimensions });
-      };
-      img.src = url;
-    });
+    return new Promise<{ url: string; width: number; height: number }>(
+      (resolve) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          const dimensions = {
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+          };
+          cache.set(url, dimensions);
+          resolve({ url, ...dimensions });
+        };
+        img.src = url;
+      },
+    );
   }, []);
 
   useEffect(() => {
@@ -51,18 +58,20 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
 
     const loadPhotos = async () => {
       const photos = placeData.photos || [];
-      const initialPhotos = photos.map(photo => ({
+      const initialPhotos = photos.map((photo) => ({
         url: photo,
-        isLoading: true
+        isLoading: true,
       }));
       setCoverPhotos(initialPhotos);
 
       const photoPromises = initialPhotos.map(async (photo, index) => {
         try {
           const loadedPhoto = await preloadImage(photo.url);
-          setCoverPhotos(prev => prev.map((p, i) => 
-            i === index ? { ...loadedPhoto, isLoading: false } : p
-          ));
+          setCoverPhotos((prev) =>
+            prev.map((p, i) =>
+              i === index ? { ...loadedPhoto, isLoading: false } : p,
+            ),
+          );
           return loadedPhoto;
         } catch (error) {
           console.error(`Failed to load photo ${index}:`, error);
@@ -77,7 +86,7 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
   }, [placeData.photos, preloadImage]);
 
   const isVisible = showDrawer && markerId === placeData.place_id;
-  
+
   return (
     <Drawer
       direction="right"
@@ -89,9 +98,7 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
     >
       <DrawerPortal>
         <DrawerOverlay className="fixed inset-0 z-50 bg-none" />
-        <DrawerTitle>
-          {placeData.activityName}
-        </DrawerTitle>
+        <DrawerTitle>{placeData.activityName}</DrawerTitle>
         <DrawerContent
           onInteractOutside={() => {
             setShowDrawer(false);
@@ -100,7 +107,7 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
         >
           <div className="h-[300px] w-full">
             <Carousel
-              slides={coverPhotos.map(photo => ({
+              slides={coverPhotos.map((photo) => ({
                 ...photo,
                 component: (
                   <div className="relative w-full h-full">
@@ -117,12 +124,12 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
                         loading="eager"
                         placeholder="blur"
                         blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                          '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                        ).toString('base64')}`}
+                          '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f3f4f6"/></svg>',
+                        ).toString("base64")}`}
                       />
                     )}
                   </div>
-                )
+                ),
               }))}
               size="large"
               asPhotosOnly
@@ -146,7 +153,7 @@ const POIDrawer = ({ placeData }: POIDrawerProps) => {
                 <span className="text-sm text-gray-400">
                   {"   ("}
                   {"0"}
-                  {")"} 
+                  {")"}
                 </span>
               </span>
             </h2>

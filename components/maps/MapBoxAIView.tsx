@@ -28,7 +28,7 @@ import {
 import { MapboxPlace } from "@/types/mapbox.types";
 import { DailyItineraryType } from "@/lib/actions/chat/getDailyItinerary";
 import toast from "react-hot-toast";
-import { convertCategoriesToIds } from '@/lib/utils/categoryConverter';
+import { convertCategoriesToIds } from "@/lib/utils/categoryConverter";
 import { searchNearbyPlaces } from "@/lib/services/foursquare";
 import { usePlaceCache } from "@/lib/stores/place-cache";
 import {
@@ -96,13 +96,14 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
     updateActivityDuration,
   } = useTripCreatorStore();
   const { setShowEditor } = useTripEditorStore();
-  const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(null);
+  const [dialogPosition, setDialogPosition] = useState<DialogPosition | null>(
+    null,
+  );
   const { dailyItinerary, keywords, setDailyItinerary } = useGPTResponseStore();
   const [finishedGPTInteraction, setFinishedGPTInteraction] = useState(false);
   const timerRef = useRef<NodeJS.Timeout>();
   const positionRef = useRef<DialogPosition | null>(null);
   const { addPlaces } = usePlaceCache();
-
 
   const parseActivities = (
     activities: DailyItineraryType["days"][number]["activities"],
@@ -124,8 +125,8 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       currentTime = endTime;
 
       // Find the corresponding place in searchResults to get the cover photo
-      const place = searchResults.find(p => p.id === activity.id);
-      const coverPhoto = place?.properties?.photos?.[0]?.prefix 
+      const place = searchResults.find((p) => p.id === activity.id);
+      const coverPhoto = place?.properties?.photos?.[0]?.prefix
         ? `${place.properties.photos[0].prefix}original${place.properties.photos[0].suffix}`
         : "";
 
@@ -133,10 +134,10 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
         id: activity.id,
         title: activity.name,
         cover: coverPhoto,
-        activityType:  "place",
+        activityType: "place",
         location: {
           lat: activity.location.lat,
-          lng: activity.location.lng
+          lng: activity.location.lng,
         },
         manualInput: false,
         summary: activity.editorialSummary || "",
@@ -311,69 +312,72 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       // Too close to top, position below marker
       position.top = Math.min(
         rect.bottom + padding,
-        viewportHeight - dialogHeight - padding
+        viewportHeight - dialogHeight - padding,
       );
     } else if (idealTop + dialogHeight > viewportHeight - padding) {
       // Too close to bottom, position above marker
-      position.top = Math.max(
-        rect.top - dialogHeight - padding,
-        padding
-      );
+      position.top = Math.max(rect.top - dialogHeight - padding, padding);
     } else {
       // Centered position works fine
       position.top = idealTop;
     }
 
     // Final safety check to ensure dialog is always visible
-    position.top = Math.max(padding, Math.min(position.top, viewportHeight - dialogHeight - padding));
+    position.top = Math.max(
+      padding,
+      Math.min(position.top, viewportHeight - dialogHeight - padding),
+    );
 
     return position;
   }, []);
 
+  const onHover = useCallback(
+    (event: MapMouseEvent) => {
+      if (!event.features || !mapRef.current) return;
 
-  const onHover = useCallback((event: MapMouseEvent) => {
-    if (!event.features || !mapRef.current) return;
+      const feature = event.features[0];
+      if (!feature || feature.properties?.cluster) return;
 
-    const feature = event.features[0];
-    if (!feature || feature.properties?.cluster) return;
+      if (feature.geometry && feature.geometry.type === "Point") {
+        event.preventDefault();
 
-    if (feature.geometry && feature.geometry.type === "Point") {
-      event.preventDefault();
-      
-      const [longitude, latitude] = feature.geometry.coordinates;
-      const featureId = feature.properties?.id || feature.properties?.fsq_id;
-      const place = searchResults.find(p => p.id === featureId);
-      
-      if (!place) {
-        console.warn('Place not found:', featureId);
-        return;
+        const [longitude, latitude] = feature.geometry.coordinates;
+        const featureId = feature.properties?.id || feature.properties?.fsq_id;
+        const place = searchResults.find((p) => p.id === featureId);
+
+        if (!place) {
+          console.warn("Place not found:", featureId);
+          return;
+        }
+
+        const position = calculateDialogPosition({
+          left: event.point.x,
+          top: event.point.y,
+          width: 0,
+          height: 0,
+          right: event.point.x,
+          bottom: event.point.y,
+        } as DOMRect);
+
+        setDialogPosition(position);
+        setPopupInfo({
+          longitude,
+          latitude,
+          name: place.properties.name,
+          description: place.properties.description,
+          id: place.id,
+          photos:
+            place.properties.photos?.map((photo) => ({
+              url: `${photo.prefix}original${photo.suffix}`,
+            })) || [],
+        });
+
+        setMarkerId(place.id);
+        setHoveredMarkerId(place.id);
       }
-
-      const position = calculateDialogPosition({
-        left: event.point.x,
-        top: event.point.y,
-        width: 0,
-        height: 0,
-        right: event.point.x,
-        bottom: event.point.y
-      } as DOMRect);
-
-      setDialogPosition(position);
-      setPopupInfo({
-        longitude,
-        latitude,
-        name: place.properties.name,
-        description: place.properties.description,
-        id: place.id,
-        photos: place.properties.photos?.map(photo => ({
-          url: `${photo.prefix}original${photo.suffix}`,
-        })) || [],
-      });
-      
-      setMarkerId(place.id);
-      setHoveredMarkerId(place.id);
-    }
-  }, [searchResults, setMarkerId, setHoveredMarkerId, calculateDialogPosition]);
+    },
+    [searchResults, setMarkerId, setHoveredMarkerId, calculateDialogPosition],
+  );
 
   const onMouseLeave = useCallback(() => {
     setPopupInfo(null);
@@ -461,7 +465,11 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       style={{ width: "49dvw", height: "88dvh" }}
       mapStyle="mapbox://styles/mapbox/streets-v12"
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-      interactiveLayerIds={["clusters", "unclustered-point", "clickable-points"]}
+      interactiveLayerIds={[
+        "clusters",
+        "unclustered-point",
+        "clickable-points",
+      ]}
       renderWorldCopies={false}
       reuseMaps
       antialias
@@ -471,17 +479,20 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
         type="geojson"
         data={{
           type: "FeatureCollection",
-          features: searchResults.map(result => ({
+          features: searchResults.map((result) => ({
             type: "Feature",
             geometry: {
               type: "Point",
-              coordinates: [result.geometry.coordinates[0], result.geometry.coordinates[1]]
+              coordinates: [
+                result.geometry.coordinates[0],
+                result.geometry.coordinates[1],
+              ],
             },
             properties: {
               id: result.id,
-              ...result.properties
-            }
-          }))
+              ...result.properties,
+            },
+          })),
         }}
         cluster={true}
         clusterMaxZoom={14}
@@ -495,16 +506,16 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       {popupInfo && (
         <Dialog open={!!popupInfo} modal={false}>
           <DialogPortal>
-            <DialogOverlay 
-              className="fixed inset-0 z-30 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" 
+            <DialogOverlay
+              className="fixed inset-0 z-30 bg-transparent data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
               onClick={() => setPopupInfo(null)}
             />
             <DialogContent
               id="MapboxMarker"
               style={{
-                position: 'fixed',
+                position: "fixed",
                 ...dialogPosition,
-                transform: 'none'
+                transform: "none",
               }}
               onPointerEnter={(e) => {
                 e.stopPropagation();
@@ -532,10 +543,12 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
                   place_type: ["poi"],
                   geometry: {
                     type: "Point",
-                    coordinates: [popupInfo.longitude, popupInfo.latitude]
+                    coordinates: [popupInfo.longitude, popupInfo.latitude],
                   },
                   properties: (() => {
-                    const place = searchResults.find(p => p.id === popupInfo.id);
+                    const place = searchResults.find(
+                      (p) => p.id === popupInfo.id,
+                    );
                     if (!place) {
                       return {
                         name: popupInfo.name,
@@ -543,7 +556,7 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
                         coverPhoto: "",
                         rating: 0,
                         userRatingCount: 0,
-                        photos: []
+                        photos: [],
                       };
                     }
                     return {
@@ -552,13 +565,14 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
                       description: place?.properties?.description,
                       rating: place?.properties?.rating || 0,
                       userRatingCount: place?.properties?.userRatingCount || 0,
-                      photos: place?.properties?.photos?.map(photo => ({
-                        url: photo.prefix + "original" + photo.suffix,
-                        width: 800,  // Default width
-                        height: 600  // Default height
-                      })) || []
+                      photos:
+                        place?.properties?.photos?.map((photo) => ({
+                          url: photo.prefix + "original" + photo.suffix,
+                          width: 800, // Default width
+                          height: 600, // Default height
+                        })) || [],
                     };
-                  })()
+                  })(),
                 }}
               />
             </DialogContent>

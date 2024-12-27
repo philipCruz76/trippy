@@ -57,7 +57,7 @@ const DestinationSelector = ({
     >
       <DialogPortal>
         <DialogClose className="w-[24px] h-[24px]" />
-        <DialogOverlay className="bg-black/80"/>
+        <DialogOverlay className="bg-black/80" />
         <DialogContent className="inner pointer-events-auto relative bottom-[25dvh] flex w-full transform-gpu flex-col max-h-[420px] rounded-t-2xl border-separator bg-background shadow-xl outline-none overflow-x-hidden overflow-y-hidden !duration-drawer ease-drawer mobile:rounded-2xl mobile:!duration-dialog mobile:ease-in-out">
           <DialogTitle>Where</DialogTitle>
           <form

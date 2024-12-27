@@ -80,10 +80,13 @@ const NavBar = () => {
       </div>
       {/* Nav Links */}
 
-      <ul className="hidden tablet:flex flex-row gap-4 items-center justify-center text-sm" role="menubar">
+      <ul
+        className="hidden tablet:flex flex-row gap-4 items-center justify-center text-sm"
+        role="menubar"
+      >
         <li role="none">
-          <Link 
-            href="/explore" 
+          <Link
+            href="/explore"
             className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
             role="menuitem"
           >
@@ -91,7 +94,7 @@ const NavBar = () => {
           </Link>
         </li>
         <li role="none">
-          <Link 
+          <Link
             href="/create"
             className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
             role="menuitem"
@@ -122,7 +125,13 @@ const NavBar = () => {
           aria-label={`Open trip editor with ${tripActivities.reduce((acc, day) => acc + day.length, 0)} activities`}
         >
           <span className="flex flex-row truncate gap-1 items-center justify-center font-semibold">
-            <Image src={"/icons/trip.svg"} height={20} width={20} alt="" className="w-[20px] h-[20px]" />
+            <Image
+              src={"/icons/trip.svg"}
+              height={20}
+              width={20}
+              alt=""
+              className="w-[20px] h-[20px]"
+            />
             Trip
             <span className="text-xs text-white font-semibold rounded-full bg-sky-500 px-2 py-1 min-w-[20px]">
               {tripActivities.reduce((acc, day) => acc + day.length, 0)}
@@ -133,9 +142,12 @@ const NavBar = () => {
 
       {/* Auth Section */}
       <div className="flex items-center">
-        { session ? (
+        {session ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer flex items-center gap-2" aria-label="User menu">
+            <DropdownMenuTrigger
+              className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-full px-4 min-h-[32px] cursor-pointer flex items-center gap-2"
+              aria-label="User menu"
+            >
               <Image
                 src={session.user?.image || "/default-avatar.png"}
                 alt=""
@@ -146,7 +158,10 @@ const NavBar = () => {
               <span className="hidden sm:inline">{session.user?.name}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => signOut({ callbackUrl: '/' })} className="cursor-pointer">
+              <DropdownMenuItem
+                onSelect={() => signOut({ callbackUrl: "/" })}
+                className="cursor-pointer"
+              >
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>

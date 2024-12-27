@@ -48,7 +48,7 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "signUp") {
         if (!dbUser.username) {
           const username = await generateUniqueUsername(dbUser.email!);
-          
+
           await db.user.update({
             where: {
               id: dbUser.id,
@@ -69,4 +69,3 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
-

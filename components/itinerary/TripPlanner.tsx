@@ -80,10 +80,11 @@ const TripPlanner = () => {
       setItinerary({ days: emptyDays });
       return;
     }
-  
-    const newActivities = itinerary.days.map(day => day.dailyActivities);
-    const hasChanged = JSON.stringify(newActivities) !== JSON.stringify(tripActivities);
-    
+
+    const newActivities = itinerary.days.map((day) => day.dailyActivities);
+    const hasChanged =
+      JSON.stringify(newActivities) !== JSON.stringify(tripActivities);
+
     if (hasChanged) {
       setTripActivities(newActivities);
     }

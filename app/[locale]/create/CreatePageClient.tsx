@@ -11,8 +11,8 @@ import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
  */
 export const CreatePageClient = () => {
   const { setShowModal } = useSignInModalStore();
-  const { tripActivities,setShowWizard, setShowEditor } = useTripEditorStore();
-  
+  const { tripActivities, setShowWizard, setShowEditor } = useTripEditorStore();
+
   return (
     <div className="mx-auto w-full max-w-[100dvw] px-8 flex flex-1 flex-row py-[84px] mobile:pt-9">
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col">
@@ -40,9 +40,9 @@ export const CreatePageClient = () => {
       <div className="flex items-center justify-start w-[50dvw]">
         <button
           onClick={() => {
-            if(tripActivities.length>0 && tripActivities[0].length>0){
+            if (tripActivities.length > 0 && tripActivities[0].length > 0) {
               setShowEditor(true);
-            }else{
+            } else {
               setShowWizard(true);
             }
           }}
@@ -64,4 +64,4 @@ export const CreatePageClient = () => {
       <TripEditor />
     </div>
   );
-}; 
+};

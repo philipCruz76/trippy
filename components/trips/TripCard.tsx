@@ -6,16 +6,25 @@ type TripCardProps = {
   tripData: TripDetails;
 };
 
-const TripCard = ({ tripData}: TripCardProps) => {
-  const tempSlides = [{
-    url: tripData.coverPhoto,
-    isLoading: false,
-    width: undefined,
-    height: undefined
-  }];
+const TripCard = ({ tripData }: TripCardProps) => {
+  const tempSlides = [
+    {
+      url: tripData.coverPhoto,
+      isLoading: false,
+      width: undefined,
+      height: undefined,
+    },
+  ];
   return (
     <>
-      <Carousel slides={tempSlides} size="normal" href={`/explore/${tripData.id}`} credit={tripData.photoCreditName ? true : false} photoCreditName={tripData.photoCreditName} photoCreditLink={tripData.photoCreditLink} />
+      <Carousel
+        slides={tempSlides}
+        size="normal"
+        href={`/explore/${tripData.id}`}
+        credit={tripData.photoCreditName ? true : false}
+        photoCreditName={tripData.photoCreditName}
+        photoCreditLink={tripData.photoCreditLink}
+      />
       <div className="flex flex-col gap-1.5 pt-4 text-sm !leading-tight @[21.375rem]:text-base">
         <h2 className="font-semibold">{tripData.title}</h2>
         <div className="flex gap-1 text-muted">

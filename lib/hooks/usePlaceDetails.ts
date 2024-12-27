@@ -4,19 +4,18 @@ import { useState, useEffect } from "react";
 export const usePlaceDetails = (placeIds: string[]) => {
   const [places, setPlaces] = useState<google.maps.places.Place[]>([]);
   const [loading, setLoading] = useState(true);
-  const onLoaded = useApiIsLoaded()
+  const onLoaded = useApiIsLoaded();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
-      if (!placeIds.length ) return;
+      if (!placeIds.length) return;
       setLoading(true);
       const { Place } = (await google.maps.importLibrary(
         "places",
       )) as google.maps.PlacesLibrary;
 
       try {
-        
         const placePromises = placeIds.map((placeId) => {
           const place = new Place({
             id: placeId,
@@ -43,12 +42,12 @@ export const usePlaceDetails = (placeIds: string[]) => {
           .filter(
             (
               result,
-            ): result is PromiseFulfilledResult<{ place: google.maps.places.Place }> =>
-              result.status === "fulfilled",
+            ): result is PromiseFulfilledResult<{
+              place: google.maps.places.Place;
+            }> => result.status === "fulfilled",
           )
           .map((result) => result.value.place);
 
-        
         setPlaces(successfulPlaces);
         setLoading(false);
       } catch (err) {
@@ -59,8 +58,7 @@ export const usePlaceDetails = (placeIds: string[]) => {
       }
     };
 
-
-    if(!onLoaded) {
+    if (!onLoaded) {
       return;
     }
     fetchPlaceDetails();

@@ -20,17 +20,17 @@ const nextConfig = {
 
     config.optimization = {
       ...config.optimization,
-      moduleIds: 'deterministic',
+      moduleIds: "deterministic",
     };
 
     config.module.rules.push({
       test: /\.csv$/,
-      loader: 'csv-loader',
+      loader: "csv-loader",
       options: {
         dynamicTyping: true,
         header: true,
-        skipEmptyLines: true
-      }
+        skipEmptyLines: true,
+      },
     });
 
     return config;
@@ -66,21 +66,21 @@ const nextConfig = {
         hostname: "*.mapbox.com",
       },
       {
-        protocol: 'https',
-        hostname: 'fastly.4sqi.net',
-        pathname: '/img/**',
-      }
+        protocol: "https",
+        hostname: "fastly.4sqi.net",
+        pathname: "/img/**",
+      },
     ],
   },
   async headers() {
     return [
       {
         // Apply these headers to all routes
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           // Content Security Policy
           {
-            key: 'Content-Security-Policy',
+            key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               // Scripts - add Google Maps, Mapbox, and other trusted sources
@@ -101,66 +101,67 @@ const nextConfig = {
               "object-src 'none'",
               // Worker sources - needed for Mapbox
               "worker-src 'self' blob:",
-            ].join('; ')
+            ].join("; "),
           },
           // CORS headers
           {
-            key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3014'
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3014",
           },
           {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS'
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
           },
           {
-            key: 'Access-Control-Allow-Headers',
-            value: 'X-Requested-With, Content-Type, Authorization'
+            key: "Access-Control-Allow-Headers",
+            value: "X-Requested-With, Content-Type, Authorization",
           },
           {
-            key: 'Access-Control-Allow-Credentials',
-            value: 'true'
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
           },
           // Additional security headers
           {
-            key: 'X-Frame-Options',
-            value: 'DENY'
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
-          }
-        ]
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
+          },
+        ],
       },
       {
         // Special headers for API routes
-        source: '/api/:path*',
+        source: "/api/:path*",
         headers: [
           {
-            key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3014'
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3014",
           },
           {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS'
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
           },
           {
-            key: 'Access-Control-Allow-Headers',
-            value: 'X-Requested-With, Content-Type, Authorization'
+            key: "Access-Control-Allow-Headers",
+            value: "X-Requested-With, Content-Type, Authorization",
           },
           {
-            key: 'Access-Control-Allow-Credentials',
-            value: 'true'
-          }
-        ]
-      }
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
+        ],
+      },
     ];
   },
 };

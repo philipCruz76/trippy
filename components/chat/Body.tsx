@@ -4,29 +4,42 @@ import { KeywordClassificationsType } from "@/lib/actions/chat/getKeywordClassif
 import { LatLngResult } from "@/lib/actions/chat/getLatLng";
 import { usePOIStore } from "@/lib/stores/poi-store";
 import { useChatMessagesStore } from "@/lib/stores/chat-messages-store";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useEffect } from "react";
 
 type BodyProps = {
   keywords: KeywordClassificationsType;
   location: LatLngResult;
   itinerary: DailyItineraryType;
+  showItinerary: boolean;
 };
 
-const Body = ({ keywords, location, itinerary }: BodyProps) => {
+const Body = ({ keywords, location, itinerary, showItinerary }: BodyProps) => {
   const { messages, isLoading } = useChatMessagesStore();
   const { setMarkerId, setHoveredMarkerId } = usePOIStore();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll to bottom when new messages arrive
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   const renderMessages = () => {
     return messages.map((message) => (
       <div
         key={message.id}
-        className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
+        className={`flex ${
+          message.isUser ? "justify-end" : "justify-start"
+        } mb-4 animate-in fade-in slide-in-from-bottom-3 duration-300`}
       >
         <div
-          className={`max-w-[70%] rounded-lg px-4 py-2 ${
+          className={`max-w-[70%] rounded-2xl px-4 py-2 ${
             message.isUser
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-800'
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 text-gray-800"
           }`}
         >
           {message.text}
@@ -35,9 +48,10 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
     ));
   };
 
-  const activityNames = useCallback((day: DailyItineraryType["days"][0]) => 
-    day.activities.map((activity) => activity.name),
-    []
+  const activityNames = useCallback(
+    (day: DailyItineraryType["days"][0]) =>
+      day.activities.map((activity) => activity.name),
+    [],
   );
 
   const createSafeRegex = useCallback((activityNames: string[]) => {
@@ -52,7 +66,7 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
       setMarkerId(id);
       setHoveredMarkerId(id);
     },
-    [setMarkerId, setHoveredMarkerId]
+    [setMarkerId, setHoveredMarkerId],
   );
 
   const handlePointerLeave = useCallback(() => {
@@ -60,61 +74,64 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
     setHoveredMarkerId("");
   }, [setMarkerId, setHoveredMarkerId]);
 
-  const renderDay = useCallback((day: DailyItineraryType["days"][0]) => {
-    const regex = createSafeRegex(activityNames(day));
-    const dailyExplainer = day.description.split(regex);
-    const activityMap = new Map(
-      day.activities.map(activity => [activity.name.toLowerCase(), activity])
-    );
+  const renderDay = useCallback(
+    (day: DailyItineraryType["days"][0]) => {
+      const regex = createSafeRegex(activityNames(day));
+      const dailyExplainer = day.description.split(regex);
+      const activityMap = new Map(
+        day.activities.map((activity) => [
+          activity.name.toLowerCase(),
+          activity,
+        ]),
+      );
 
-    return (
-      <div key={day.title}>
-        <p>
-          {" "}
-          {day.title}
-          <br />
-          <br />
-        </p>
+      return (
+        <div key={day.title}>
+          <p>
+            {" "}
+            {day.title}
+            <br />
+            <br />
+          </p>
 
-        <p>
-          {dailyExplainer.map((part, index) => {
-            const normalizedPart = part.toLowerCase();
-            const activity = activityMap.get(normalizedPart);
-            return activity ? (
-              <a
-                key={`${day.title}-${index}`}
-                onPointerEnter={handlePointerEnter(activity.id)}
-                onPointerLeave={handlePointerLeave}
-                className="text-black font-semibold cursor-pointer"
-              >
-                {part}
-              </a>
-            ) : (
-              part.replace(/\*/g, "")
-            );
-          })}
-          <br />
-          <br />
-        </p>
-      </div>
-    );
-  }, [activityNames, createSafeRegex, handlePointerEnter, handlePointerLeave]);
-
-  const renderedDays = useMemo(() => 
-    itinerary.days?.map(renderDay),
-    [itinerary.days, renderDay]
+          <p>
+            {dailyExplainer.map((part, index) => {
+              const normalizedPart = part.toLowerCase();
+              const activity = activityMap.get(normalizedPart);
+              return activity ? (
+                <a
+                  key={`${day.title}-${index}`}
+                  onPointerEnter={handlePointerEnter(activity.id)}
+                  onPointerLeave={handlePointerLeave}
+                  className="text-black font-semibold cursor-pointer"
+                >
+                  {part}
+                </a>
+              ) : (
+                part.replace(/\*/g, "")
+              );
+            })}
+            <br />
+            <br />
+          </p>
+        </div>
+      );
+    },
+    [activityNames, createSafeRegex, handlePointerEnter, handlePointerLeave],
   );
 
-  // Show loading indicator only when gathering information
-  const showLoadingIndicator = isLoading && (!keywords.foundKeywords?.location || 
-    !keywords.foundKeywords?.duration || 
-    !keywords.foundKeywords?.activityTypes);
+  const renderedDays = useMemo(
+    () => itinerary.days?.map(renderDay),
+    [itinerary.days, renderDay],
+  );
 
   return (
     <div className="flex flex-col space-y-4 p-4">
       {renderMessages()}
-      
-      {showLoadingIndicator && (
+
+      <div ref={messagesEndRef} />
+
+      {isLoading && (
         <div className="flex justify-start mb-4">
           <div className="bg-gray-100 rounded-lg px-4 py-2">
             <div className="flex gap-1">
@@ -126,13 +143,9 @@ const Body = ({ keywords, location, itinerary }: BodyProps) => {
         </div>
       )}
 
-      {/* Only show itinerary when we have all required information */}
-      {keywords.foundKeywords?.location && 
-       keywords.foundKeywords?.duration && 
-       keywords.foundKeywords?.activityTypes && 
-       itinerary.days && 
-       itinerary.days.length > 0 && (
-        <div className="border rounded-2xl hover:bg-gray-200 hover:bg-opacity-30 text-sm w-full h-fit items-start text-start justify-start overflow-hidden text-slate-600 py-1 px-4">
+      {/* Only show itinerary when we have the final result */}
+      {showItinerary && itinerary.days && itinerary.days.length > 0 && (
+        <div className="flex flex-col h-fti justify-start max-w-[70%] rounded-2xl px-4 py-2 mb-4 animate-in fade-in slide-in-from-bottom-3 duration-300 bg-gray-100 text-gray-800">
           <p>
             <br />
             {itinerary.summary} <br />

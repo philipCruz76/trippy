@@ -9,7 +9,14 @@ import TextareaAutoSize from "react-textarea-autosize";
 type ChatBoxProps = {};
 
 const ChatBox = ({}: ChatBoxProps) => {
-  const { setKeywords, setGeoLocation, setGptInteractionStarted } = useGPTResponseStore();
+  const {
+    setKeywords,
+    setGeoLocation,
+    setGptInteractionStarted,
+    retryCount,
+    incrementRetryCount,
+    resetRetryCount,
+  } = useGPTResponseStore();
   const { addMessage, setIsLoading } = useChatMessagesStore();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [input, setInput] = useState<string>("");
@@ -18,34 +25,82 @@ const ChatBox = ({}: ChatBoxProps) => {
     if (!input) return;
     setGptInteractionStarted(true);
     setIsLoading(true);
-    
+
     // Add user message to chat
     addMessage(input, true);
 
+    // Get previous keywords from the store
+    const prevKeywords = useGPTResponseStore.getState().keywords;
+
     fetch("/api/messages", {
       method: "POST",
-      body: JSON.stringify({ text: input, chatId: "cenas" }),
+      body: JSON.stringify({
+        text: input,
+        chatId: "cenas",
+        // Always pass previous keywords during retries
+        previousKeywords:
+          retryCount > 0
+            ? prevKeywords
+            : prevKeywords.foundKeywords.location
+              ? prevKeywords
+              : undefined,
+      }),
     })
       .then(async (res) => {
         const gptReply = await res.json();
-        if(gptReply.aiLocation === "Error" || !gptReply.aiLocation) throw new Error("CHAT_KEYWORD_ERROR");
-        
+        console.log(gptReply);
+
+        if (
+          !gptReply.aiLocation ||
+          gptReply.aiResponse.activityTypes.length === 0
+        ) {
+          // Add AI response to chat
+          addMessage(gptReply.message, false);
+
+          if (retryCount >= 2) {
+            addMessage(
+              "I'm sorry, I'm having trouble understanding your request. You have reached the maximum number of retries. Please refresh the page and start a new chat.",
+              false,
+            );
+            throw new Error("MAX_RETRIES_EXCEEDED");
+          }
+
+          // Store the partial keywords even during retry
+          if (gptReply.aiResponse) {
+            setKeywords(gptReply.aiResponse);
+          }
+
+          incrementRetryCount();
+          setIsLoading(false);
+          return;
+        }
+
+        // Success case - reset retry counter
+        resetRetryCount();
+
         // Add AI response to chat
-        addMessage("I've found some interesting places based on your request. Let me plan an itinerary for you.", false);
-        
+        addMessage(gptReply.message, false);
+
         setKeywords(gptReply.aiResponse);
         setGeoLocation(gptReply.aiLocation);
         setIsLoading(false);
       })
       .catch((error) => {
         setIsLoading(false);
-        toast.error(error.message);
+        if (error.message === "MAX_RETRIES_EXCEEDED") {
+          toast.error(
+            "Maximum number of retries reached. Please try rephrasing your request completely.",
+          );
+          resetRetryCount();
+        } else {
+          toast.error(error.message);
+        }
       });
 
     setInput("");
     textareaRef.current?.focus();
   };
-  
+
   return (
     <form className="relative flex flex-row items-center gap-2 border-gray-7 transition-colors hover:border-gray-8 rounded-t-2xl border-t px-4 py-2 mobile:rounded-3xl mobile:border-2">
       <TextareaAutoSize

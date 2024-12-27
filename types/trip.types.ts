@@ -31,7 +31,7 @@ export const ActivityValidator = z.object({
   manualInput: z.boolean().optional(),
   location: z.object({
     lat: z.number(),
-    lng: z.number()
+    lng: z.number(),
   }),
   summary: z.string().optional(),
   activityType: z.string(),
@@ -113,7 +113,7 @@ export const TripDetailsValidator = z.object({
                 formatted_address: z.string(),
                 location: z.object({
                   lat: z.number(),
-                  lng: z.number()
+                  lng: z.number(),
                 }),
                 activityType: z.string().optional(),
                 time: z.string().optional(),

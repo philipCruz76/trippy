@@ -23,7 +23,10 @@ const MenuDrawer = ({}: MenuDrawerProps) => {
     <>
       <Drawer direction="left" open={showNav} dismissible={false}>
         <DrawerPortal>
-          <DrawerOverlay className="fixed inset-0 z-50 translate-x-0 bg-black backdrop-blur-sm bg-opacity-20" onClick={() => setShowNav(false)} />
+          <DrawerOverlay
+            className="fixed inset-0 z-50 translate-x-0 bg-black backdrop-blur-sm bg-opacity-20"
+            onClick={() => setShowNav(false)}
+          />
           <DrawerContent
             onInteractOutside={() => {
               setShowNav(false);
@@ -104,10 +107,7 @@ const MenuDrawer = ({}: MenuDrawerProps) => {
                     setShowNav(false);
                     setShowModal(true);
                   }}
-                  className="mt-auto w-full h-[40px] border border-[#251F1F] text-[#251F1F] 
-                    hover:bg-black hover:border-black hover:text-white 
-                    hover:scale-105 transform ease-in-out duration-300 
-                    rounded-2xl bg-transparent active:scale-95"
+                  className="mt-auto w-full h-[40px] border border-[#251F1F] text-[#251F1F] hover:bg-black hover:border-black hover:text-white hover:scale-105 transform ease-in-out duration-300 rounded-2xl bg-transparent active:scale-95"
                 >
                   Sign In
                 </button>

@@ -60,9 +60,9 @@ const ActivitySelector = ({
       durationTo: "",
       location: {
         lat: 0,
-        lng: 0
+        lng: 0,
       },
-      id: crypto.randomUUID()
+      id: crypto.randomUUID(),
     },
     mode: "onChange",
   });
@@ -75,7 +75,7 @@ const ActivitySelector = ({
     watch,
     setValue,
     getValues,
-    formState: { errors, isValid, isSubmitting, },
+    formState: { errors, isValid, isSubmitting },
   } = form;
 
   const ACTIVITY_TYPES = [
@@ -136,11 +136,11 @@ const ActivitySelector = ({
       console.log("Form validation state:", {
         isValid: form.formState.isValid,
         errors: form.formState.errors,
-        values: data
+        values: data,
       });
-  
+
       setError(null);
-  
+
       const newActivity = {
         id: data.id,
         activityType: data.activityType,
@@ -151,10 +151,10 @@ const ActivitySelector = ({
         cover: data.cover,
         location: data.location,
       };
-  
-      console.log('Adding activity:', {
+
+      console.log("Adding activity:", {
         newActivity,
-        dayIndex
+        dayIndex,
       });
       addActivity(newActivity, dayIndex);
       setEditField({ create: false, dayIndex: 0 });
@@ -162,7 +162,7 @@ const ActivitySelector = ({
     } catch (err) {
       setError("Failed to add activity. Please try again.");
       console.error("Failed to add activity:", err);
-    } 
+    }
   };
 
   // Add confirmation dialog for unsaved changes
@@ -193,23 +193,27 @@ const ActivitySelector = ({
         shouldDirty: true,
         shouldTouch: true,
       });
-      
+
       setValue("activityType", selectedActivityType, {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
       });
-  
+
       // Set default location if not already set
-      setValue("location", {
-        lat: 0,
-        lng: 0
-      }, {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      
+      setValue(
+        "location",
+        {
+          lat: 0,
+          lng: 0,
+        },
+        {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        },
+      );
+
       setShowForm(true);
     }
   }, [selectedActivityType, setValue]);

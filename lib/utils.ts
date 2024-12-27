@@ -60,8 +60,6 @@ export function toLatLngLiteral(
  * @throws Error if the time string format is invalid
  */
 export function timeStringToMinutes(timeString: string): number {
-  
-
   const [hours, minutes] = timeString.split(":").map(Number);
 
   // Validate hour and minute ranges (redundant with regex but adds type safety)
@@ -81,7 +79,7 @@ export function timeStringToMinutes(timeString: string): number {
 export function minutesToTimeString(totalMinutes: number): string {
   // Validate that input is a positive integer
   if (!Number.isInteger(totalMinutes) || totalMinutes < 0) {
-    throw new Error('Minutes must be a positive integer');
+    throw new Error("Minutes must be a positive integer");
   }
 
   // Handle overflow by wrapping around to next day
@@ -91,8 +89,8 @@ export function minutesToTimeString(totalMinutes: number): string {
   const minutes = normalizedMinutes % 60;
 
   // Pad with leading zeros to ensure HH:mm format
-  const hoursStr = hours.toString().padStart(2, '0');
-  const minutesStr = minutes.toString().padStart(2, '0');
+  const hoursStr = hours.toString().padStart(2, "0");
+  const minutesStr = minutes.toString().padStart(2, "0");
 
   return `${hoursStr}:${minutesStr}`;
 }

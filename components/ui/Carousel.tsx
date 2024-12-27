@@ -22,7 +22,7 @@ type CarouselSlide = {
 
 type CarouselProps = {
   slides: CarouselSlide[];
-  size: 'large' | 'normal' | 'custom';
+  size: "large" | "normal" | "custom";
   customHeight?: string;
   asPhotosOnly?: boolean;
   href?: string;
@@ -60,7 +60,7 @@ const Carousel = ({
     }
   };
 
-  if(!Array.isArray(slides) || slides.length === 0 || !slides[0].url) {
+  if (!Array.isArray(slides) || slides.length === 0 || !slides[0].url) {
     // Return carousel with not-found image
     return (
       <Card
@@ -133,9 +133,10 @@ const Carousel = ({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-white text-black p-2 rounded-md shadow-md">
-                  <p>Photo by{' '}
+                  <p>
+                    Photo by{" "}
                     {photoCreditLink ? (
-                      <a 
+                      <a
                         href={photoCreditLink}
                         target="_blank"
                         rel="noopener noreferrer"

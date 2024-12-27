@@ -23,7 +23,7 @@ const TripEditor = () => {
   const drawerContentClasses = cn(
     isDesktop
       ? "fixed border-gray-300/80 shadow-md rounded-tl-xl rounded-bl-xl right-0 bottom-0 z-50 mt-24 flex h-[100dvh] w-[50dvw] flex-col bg-white px-4 py-6 overflow-hidden"
-      : "flex px-6 w-[100dvw] h-[100dvh] border-black rounded-xl overflow-hidden"
+      : "flex px-6 w-[100dvw] h-[100dvh] border-black rounded-xl overflow-hidden",
   );
 
   return (

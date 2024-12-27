@@ -12,34 +12,41 @@ type TripItineraryProps = {
 };
 
 const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
-  const { updateActivitySummary, setTripActivities, tripActivities } = useTripEditorStore();
+  const { updateActivitySummary, setTripActivities, tripActivities } =
+    useTripEditorStore();
 
   // Sync initial data with store on mount
   useEffect(() => {
-    if(!isOwner) return;
-    const activities = itinerary.dailyTrip.map(day => 
-      day.itinerary.map(item => 
-        item.activities.map(activity => ({
-          ...activity,
-          title: activity.activityName,
-          id: activity.place_id,
-          activityType: activity.activityType || ''
-        }))
-      ).flat()
+    if (!isOwner) return;
+    const activities = itinerary.dailyTrip.map((day) =>
+      day.itinerary
+        .map((item) =>
+          item.activities.map((activity) => ({
+            ...activity,
+            title: activity.activityName,
+            id: activity.place_id,
+            activityType: activity.activityType || "",
+          })),
+        )
+        .flat(),
     );
     setTripActivities(activities);
   }, [itinerary, setTripActivities, isOwner]);
 
   // Get activity summary from store or fallback to initial data
   const getActivitySummary = (dayIndex: number, actIndex: number) => {
-    return tripActivities[dayIndex]?.[actIndex]?.summary || 
-           itinerary.dailyTrip[dayIndex]?.itinerary[0]?.activities[actIndex]?.summary || '';
+    return (
+      tripActivities[dayIndex]?.[actIndex]?.summary ||
+      itinerary.dailyTrip[dayIndex]?.itinerary[0]?.activities[actIndex]
+        ?.summary ||
+      ""
+    );
   };
 
   // Add this function to render the activity type with icon
   const renderActivityTypeWithIcon = (activityType: string) => {
     const icon = activityTypeIconSelector(activityType);
-    
+
     return (
       <div className="flex items-center gap-2">
         <Image
@@ -49,9 +56,7 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
           height={16}
           className="shrink-0"
         />
-        <span className="capitalize text-gray-500 text-sm">
-          {activityType}
-        </span>
+        <span className="capitalize text-gray-500 text-sm">{activityType}</span>
       </div>
     );
   };
@@ -121,13 +126,17 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                               <TextareaAutoSize
                                 value={getActivitySummary(dayIndex, actIndex)}
                                 onChange={(e) => {
-                                  updateActivitySummary(dayIndex, actIndex, e.target.value);
+                                  updateActivitySummary(
+                                    dayIndex,
+                                    actIndex,
+                                    e.target.value,
+                                  );
                                 }}
                                 placeholder="Add a summary for this activity..."
                                 className="w-full resize-none bg-transparent outline-none border rounded p-2 min-h-[100px] scrollbar-hide"
                               />
                             ) : (
-                              <p>{activity.summary || ''}</p>
+                              <p>{activity.summary || ""}</p>
                             )}
                           </div>
                         </div>
@@ -154,18 +163,22 @@ const TripItinerary = ({ itinerary, isOwner }: TripItineraryProps) => {
                               <TextareaAutoSize
                                 value={getActivitySummary(dayIndex, actIndex)}
                                 onChange={(e) => {
-                                  updateActivitySummary(dayIndex, actIndex, e.target.value);
+                                  updateActivitySummary(
+                                    dayIndex,
+                                    actIndex,
+                                    e.target.value,
+                                  );
                                 }}
                                 placeholder="Add a description..."
                                 className="w-full resize-none bg-transparent outline-none border rounded p-2 min-h-[100px] scrollbar-hide"
                               />
                             ) : (
-                              <p>{activity.summary || ''}</p>
+                              <p>{activity.summary || ""}</p>
                             )}
                           </div>
                         </div>
                         <div className="col-start-2 top-[calc(var(--header-height)*2+theme(space.4))] sticky">
-                        <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[20rem] desktop:h-[31.25rem] py-[8px]">
+                          <div className="relative overflow-hidden group rounded-2xl aspect-auto h-[20rem] desktop:h-[31.25rem] py-[8px]">
                             <Carousel
                               slides={activity.photos.map((photo) => ({
                                 url: photo,

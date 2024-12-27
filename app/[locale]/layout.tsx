@@ -33,10 +33,9 @@ export default async function RootLayout({
 
   const { langDir, hrefLang } = availableLocalesMap[locale] || defaultLocale;
 
- 
   // Enable static rendering
   unstable_setRequestLocale(locale);
-  
+
   return (
     <html
       lang={hrefLang}

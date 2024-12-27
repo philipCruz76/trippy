@@ -8,7 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
-import { TripCreatorState, useTripCreatorStore } from "@/lib/stores/create-trip-store";
+import {
+  TripCreatorState,
+  useTripCreatorStore,
+} from "@/lib/stores/create-trip-store";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +34,9 @@ import Image from "next/image";
 // Form validation schema
 const tripFormSchema = z.object({
   title: z.string().min(3, "Title is required"),
-  location: z.string().refine((value) => value.trim() !== "", "Location is required"),
+  location: z
+    .string()
+    .refine((value) => value.trim() !== "", "Location is required"),
   duration: z.number().min(1, "Duration is required"),
 });
 
@@ -53,7 +58,14 @@ const TrIpCreationWizard = () => {
     },
   });
 
-  const { register, handleSubmit, getValues,setValue, formState: { errors }, watch } = form;
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors },
+    watch,
+  } = form;
 
   // Search destinations with debounce
   const searchResults = useDebouncedCallback(async (query: string) => {
@@ -79,21 +91,23 @@ const TrIpCreationWizard = () => {
 
   const handleNext = async () => {
     if (step === 1) {
-      const titleValid = await form.trigger('title');
+      const titleValid = await form.trigger("title");
       if (!titleValid) return;
     } else if (step === 2) {
-      const locationValue = getValues('location');
-      if (destinationResults?.some(
-        dest => dest.city?.toLowerCase() === locationValue.toLowerCase()
-      )) {
+      const locationValue = getValues("location");
+      if (
+        destinationResults?.some(
+          (dest) => dest.city?.toLowerCase() === locationValue.toLowerCase(),
+        )
+      ) {
         setValue("location", locationValue);
       } else {
-        form.setError('location', {
-          message: "Please select a valid destination from the list"
+        form.setError("location", {
+          message: "Please select a valid destination from the list",
         });
         return;
       }
-      const locationValid = await form.trigger('location');
+      const locationValid = await form.trigger("location");
       if (!locationValid) return;
     }
     if (step < 3) setStep(step + 1);
@@ -108,7 +122,7 @@ const TrIpCreationWizard = () => {
     setTitle(data.title);
     setLocation(data.location);
     setDuration(data.duration);
-    
+
     // Close wizard and open editor
     setShowWizard(false);
     setShowEditor(true);
@@ -158,34 +172,38 @@ const TrIpCreationWizard = () => {
                 className="w-full"
               />
               {errors.location && (
-                <p className="text-red-500 text-sm">{errors.location.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.location.message}
+                </p>
               )}
               {Array.isArray(filteredResults) && filteredResults.length > 0 ? (
-              <div className="relative mt-9 flex flex-col max-h-[220px] overflow-y-scroll gap-4">
-                {filteredResults.map((destination) => (
-                  <div
-                    onClick={() => {
-                      setValue("location", destination.city!);
-                    }}
-                    className="flex flex-row justify-start cursor-pointer items-center gap-2 hover:bg-gray-200 rounded-xl p-2"
-                  >
-                    <Image
-                      src={destination.photo!}
-                      alt={destination.city!}
-                      width={64}
-                      height={64}
-                      className="rounded-2xl overflow-hidden min-h-[64px] min-w-[64px] max-h-[64px] max-w-[64px]"
-                    />
-                    <div className="min-w-0 flex-1 flex flex-col leading-tight">
-                      <span className="mb-0.5 truncate text-md font-semibold">
-                        {destination.city}
-                      </span>
-                      <span className="capitalize">{destination.country}</span>
+                <div className="relative mt-9 flex flex-col max-h-[220px] overflow-y-scroll gap-4">
+                  {filteredResults.map((destination) => (
+                    <div
+                      onClick={() => {
+                        setValue("location", destination.city!);
+                      }}
+                      className="flex flex-row justify-start cursor-pointer items-center gap-2 hover:bg-gray-200 rounded-xl p-2"
+                    >
+                      <Image
+                        src={destination.photo!}
+                        alt={destination.city!}
+                        width={64}
+                        height={64}
+                        className="rounded-2xl overflow-hidden min-h-[64px] min-w-[64px] max-h-[64px] max-w-[64px]"
+                      />
+                      <div className="min-w-0 flex-1 flex flex-col leading-tight">
+                        <span className="mb-0.5 truncate text-md font-semibold">
+                          {destination.city}
+                        </span>
+                        <span className="capitalize">
+                          {destination.country}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+                  ))}
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -194,7 +212,9 @@ const TrIpCreationWizard = () => {
               <Label htmlFor="duration">Duration</Label>
               <Select
                 value={watch("duration")?.toString()}
-                onValueChange={(value) => setValue("duration", parseInt(value, 10))}
+                onValueChange={(value) =>
+                  setValue("duration", parseInt(value, 10))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select duration" />
@@ -208,18 +228,16 @@ const TrIpCreationWizard = () => {
                 </SelectContent>
               </Select>
               {errors.duration && (
-                <p className="text-red-500 text-sm">{errors.duration.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.duration.message}
+                </p>
               )}
             </div>
           )}
 
           <div className="mt-6 flex justify-between">
             {step > 1 && (
-              <Button 
-                type="button" 
-                onClick={handleBack}
-                variant="outline"
-              >
+              <Button type="button" onClick={handleBack} variant="outline">
                 Back
               </Button>
             )}
@@ -228,13 +246,15 @@ const TrIpCreationWizard = () => {
                 type="button"
                 onClick={handleNext}
                 className={`ml-auto ${
-                  (step === 1 && !watch('title')) || 
-                  (step === 2 && !watch('location'))
-                    ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'
-                    : ''
+                  (step === 1 && !watch("title")) ||
+                  (step === 2 && !watch("location"))
+                    ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed"
+                    : ""
                 }`}
-                disabled={(step === 1 && !watch('title')) || 
-                         (step === 2 && !watch('location'))}
+                disabled={
+                  (step === 1 && !watch("title")) ||
+                  (step === 2 && !watch("location"))
+                }
               >
                 Next
               </Button>
@@ -242,11 +262,11 @@ const TrIpCreationWizard = () => {
               <Button
                 type="submit"
                 className={`ml-auto ${
-                  !watch('duration')
-                    ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'
-                    : ''
+                  !watch("duration")
+                    ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed"
+                    : ""
                 }`}
-                disabled={!watch('duration')}
+                disabled={!watch("duration")}
               >
                 Submit
               </Button>

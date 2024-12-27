@@ -25,7 +25,11 @@ const TripBanner = ({
   const [editType, setEditType] = useState<"title" | "image" | null>(null);
   const { coverPhoto, setCoverPhoto, title, setTitle } = useTripEditorStore();
 
-  const handleUpdate = (newValue: string, creditName?: string, creditLink?: string) => {
+  const handleUpdate = (
+    newValue: string,
+    creditName?: string,
+    creditLink?: string,
+  ) => {
     if (editType === "title") {
       setTitle(newValue);
     } else if (editType === "image") {

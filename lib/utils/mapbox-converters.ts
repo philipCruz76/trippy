@@ -18,10 +18,10 @@ export function mapboxToActivityType(place: MapboxPlace) {
     activityType: place.properties.category || "place",
     location: {
       lat: place.geometry.coordinates[1],
-      lng: place.geometry.coordinates[0]
+      lng: place.geometry.coordinates[0],
     },
     manualInput: false,
     durationFrom: "09:00", // Default values
-    durationTo: "10:30"
+    durationTo: "10:30",
   };
-} 
+}

@@ -30,7 +30,7 @@ const page = async ({ params: { locale } }: { params: { locale: string } }) => {
         <div>No trips found</div>
       </div>
     );
-    
+
   const filteredTrips = trips.filter(
     (trip) => trip.published || trip.userId === userId,
   );

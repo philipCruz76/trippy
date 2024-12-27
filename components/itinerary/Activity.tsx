@@ -4,10 +4,10 @@ import Image from "next/image";
 import React from "react";
 
 type ActivityAdditionalProps = {
-  dayIdx:number;
+  dayIdx: number;
   actIdx: number;
   priority?: boolean;
-}
+};
 
 const Activity = ({
   cover,
@@ -18,9 +18,9 @@ const Activity = ({
   durationTo,
   dayIdx,
   actIdx,
-  priority
+  priority,
 }: ActivityType & ActivityAdditionalProps) => {
-  const {removeActivity} = useTripEditorStore();
+  const { removeActivity } = useTripEditorStore();
   const [imageLoading, setImageLoading] = React.useState(true);
   const [imageFallback, setImageFallback] = React.useState(false);
 
@@ -49,7 +49,7 @@ const Activity = ({
                   width={60}
                   height={60}
                   className={`object-cover transition-opacity duration-300 ${
-                    imageLoading ? 'opacity-0' : 'opacity-100'
+                    imageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   loading={priority ? "eager" : "lazy"}
                   priority={priority}
@@ -65,7 +65,7 @@ const Activity = ({
           </div>
           {/* Activity Title */}
           <div className="relative min-w-0 flex-1">
-            {manualInput=== true ? (
+            {manualInput === true ? (
               <span className="text-xs text-black bg-zinc-200 rounded-2xl px-[6px]">
                 Manually Added
               </span>
@@ -106,7 +106,10 @@ const Activity = ({
             </div>
           </div>
           {/* Remove activity */}
-          <button  onClick={()=> removeActivity(dayIdx,actIdx)} className="flex w-8 h-8 border items-center group justify-center rounded-xl hover:bg-zinc-300">
+          <button
+            onClick={() => removeActivity(dayIdx, actIdx)}
+            className="flex w-8 h-8 border items-center group justify-center rounded-xl hover:bg-zinc-300"
+          >
             <Image
               src={"/icons/remove.svg"}
               alt="Delete button"

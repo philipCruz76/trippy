@@ -18,10 +18,14 @@ export default async function middleware(req: NextRequest) {
 
   const token = await getToken({ req });
   const pathname = req.nextUrl.pathname;
-  
+
   // Check both root path and localized root path
-  if (token && (pathname === '/' || availableLocaleCodes.some(locale => pathname === `/${locale}`))) {
-    const locale = pathname.split('/')[1] || defaultLocale.code;
+  if (
+    token &&
+    (pathname === "/" ||
+      availableLocaleCodes.some((locale) => pathname === `/${locale}`))
+  ) {
+    const locale = pathname.split("/")[1] || defaultLocale.code;
     return Response.redirect(new URL(`/${locale}/explore`, req.url));
   }
 

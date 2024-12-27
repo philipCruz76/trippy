@@ -14,10 +14,17 @@ type GPTResponseState = {
   getKeyWords: () => KeywordClassificationsType;
   getGeoLocation: () => LatLngResult;
   getDailyItinerary: () => DailyItineraryType;
-  setActivityCoverPhoto: (dayIndex: number, activityIndex: number, coverPhoto: string) => void;
+  setActivityCoverPhoto: (
+    dayIndex: number,
+    activityIndex: number,
+    coverPhoto: string,
+  ) => void;
   setGptInteractionStarted: (gptInteractionStarted: boolean) => void;
   getGptInteractionStarted: () => boolean;
   setTripTitle: (title: string) => void;
+  retryCount: number;
+  incrementRetryCount: () => void;
+  resetRetryCount: () => void;
 };
 
 export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
@@ -40,23 +47,27 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
   },
   dailyItinerary: {
     title: "",
-    summary:"",
-    days:[{
-      title:"",
-      description:"",
-      activities:[{
-        index: 0,
-        name:"",
-        id:"",
-        coverPhoto:"",
-        location:{
-          lat:0,
-          lng:0
-        }
-      }]
-    }]
+    summary: "",
+    days: [
+      {
+        title: "",
+        description: "",
+        activities: [
+          {
+            index: 0,
+            name: "",
+            id: "",
+            coverPhoto: "",
+            location: {
+              lat: 0,
+              lng: 0,
+            },
+          },
+        ],
+      },
+    ],
   },
-  
+
   gptInteractionStarted: false,
 
   setGptInteractionStarted(gptInteractionStarted) {
@@ -100,7 +111,9 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
     set(
       produce((state) => {
         if (state.dailyItinerary.days[dayIndex]?.activities[activityIndex]) {
-          state.dailyItinerary.days[dayIndex].activities[activityIndex].coverPhoto = coverPhoto;
+          state.dailyItinerary.days[dayIndex].activities[
+            activityIndex
+          ].coverPhoto = coverPhoto;
         }
       }),
     );
@@ -115,4 +128,19 @@ export const useGPTResponseStore = create<GPTResponseState>()((set, get) => ({
       }),
     );
   },
+  retryCount: 0,
+
+  incrementRetryCount: () =>
+    set(
+      produce((state) => {
+        state.retryCount = state.retryCount + 1;
+      }),
+    ),
+
+  resetRetryCount: () =>
+    set(
+      produce((state) => {
+        state.retryCount = 0;
+      }),
+    ),
 }));
