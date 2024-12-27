@@ -16,14 +16,9 @@ export async function PATCH(
       overviewSummary,
     } = await request.json();
 
-    if (!tripId) {
-      return NextResponse.json(
-        { error: "Trip ID is required" },
-        { status: 400 },
-      );
-    }
+    // ... existing validation code ...
 
-    // First, get the trip's itinerary to access dailyTrips
+    // Fetch trip data
     const trip = await db.tripDetails.findUnique({
       where: { id: tripId },
       include: {
@@ -39,68 +34,57 @@ export async function PATCH(
       },
     });
 
-    if (!trip?.itinerary?.dailyTrip) {
-      return NextResponse.json(
-        { error: "Trip itinerary not found" },
-        { status: 404 },
-      );
-    }
+    // ... existing validation check ...
 
-    // Update each activity's summary based on the activities array from the request
-    for (let dayIndex = 0; dayIndex < activities.length; dayIndex++) {
-      const dayActivities = activities[dayIndex];
-      const dailyTrip = trip.itinerary.dailyTrip[dayIndex];
-
-      if (dailyTrip && dayActivities) {
-        // Update each activity's summary
-        for (let actIndex = 0; actIndex < dayActivities.length; actIndex++) {
-          const activity = dailyTrip.activities[actIndex];
-          if (activity) {
-            await db.activity.update({
-              where: { id: activity.id },
-              data: { summary: dayActivities[actIndex].summary || "" },
-            });
-          }
-        }
-      }
-    }
-
-    // Update the overview summary
-    await db.tripDetails.update({
-      where: { id: tripId },
-      data: {
-        overview: {
-          update: {
-            summary: overviewSummary || "",
-          },
-        },
-      },
+    // Create an array of all activity update promises
+    const activityUpdates = activities.flatMap((dayActivities: any[], dayIndex: number) => {
+      const dailyTrip = trip?.itinerary?.dailyTrip[dayIndex];
+      if (!dailyTrip) return [];
+      
+      return dayActivities.map((activity, actIndex) => {
+        if (!activity) return null;
+        const existingActivity = dailyTrip.activities[actIndex];
+        if (!existingActivity) return null;
+        
+        return db.activity.update({
+          where: { id: existingActivity.id },
+          data: { summary: activity.summary ?? "" },
+        });
+      }).filter((update): update is NonNullable<typeof update> => update !== null);
     });
 
-    // Update the trip details
-    const updatedTrip = await db.tripDetails.update({
-      where: {
-        id: tripId,
-      },
-      data: {
-        published: true,
-        title,
-        coverPhoto,
-        photoCreditName,
-        photoCreditLink,
-      },
-      include: {
-        itinerary: {
-          include: {
-            dailyTrip: {
-              include: {
-                activities: true,
+    // Execute all updates in parallel
+    const [updatedTrip] = await Promise.all([
+      // Update trip details, overview, and publish status
+      db.tripDetails.update({
+        where: { id: tripId },
+        data: {
+          published: true,
+          title,
+          coverPhoto,
+          photoCreditName,
+          photoCreditLink,
+          overview: {
+            update: {
+              summary: overviewSummary || "",
+            },
+          },
+        },
+        include: {
+          itinerary: {
+            include: {
+              dailyTrip: {
+                include: {
+                  activities: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      // Spread the activity updates array to execute all in parallel
+      ...activityUpdates,
+    ]);
 
     return NextResponse.json(updatedTrip);
   } catch (error) {
