@@ -78,6 +78,7 @@ const DIALOG_DIMENSIONS = {
 const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
   const mapRef = useRef<MapRef>(null);
   const { searchResults, setSearchResults } = useMapbox();
+  const [isMobile, setIsMobile] = useState(false);
   const [viewState, setViewState] = useState({
     longitude: city.lng,
     latitude: city.lat,
@@ -104,6 +105,18 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
   const timerRef = useRef<NodeJS.Timeout>();
   const positionRef = useRef<DialogPosition | null>(null);
   const { addPlaces } = usePlaceCache();
+
+  // Add this useEffect to handle screen size changes
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768); // You can adjust this breakpoint
+    };
+    
+    checkMobile(); // Check initially
+    window.addEventListener('resize', checkMobile); // Listen for resize events
+    
+    return () => window.removeEventListener('resize', checkMobile); // Cleanup
+  }, []);
 
   const parseActivities = (
     activities: DailyItineraryType["days"][number]["activities"],
@@ -462,7 +475,10 @@ const MapBoxAIView = ({ city, searchTypes }: MapBoxAIViewProps) => {
       onClick={onClick}
       onMouseMove={onHover}
       onMouseLeave={onMouseLeave}
-      style={{ width: "49dvw", height: "88dvh" }}
+      style={{ 
+        width: isMobile ? "100dvw" : "49dvw", 
+        height: isMobile ? "100dvh" : "88dvh" 
+      }}
       mapStyle="mapbox://styles/mapbox/streets-v12"
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       interactiveLayerIds={[

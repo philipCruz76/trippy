@@ -225,7 +225,7 @@ const TripPlanner = () => {
       >
         <div className="w-full">
           {/* Trip Title */}
-          <div className="relative group pb-4 pt-6 flex flex-row gap-2 min-w-full items-center">
+          <div className="relative group pb-4 pt-6 flex flex-row gap-2 min-w-full mobile:px-4 items-center">
             <Input
               type="text"
               id="trip-title"
@@ -265,7 +265,6 @@ const TripPlanner = () => {
           </div>
         </div>
         <div className="flex justify-end mb-4">
-          {/** TODO: Implement save trip functionality */}
           <Button
             onClick={handleSaveTrip}
             className="bg-primary hover:bg-primary/90 text-white"

@@ -62,18 +62,36 @@ const MenuDrawer = ({}: MenuDrawerProps) => {
                 <span className="font-sans font-medium">Home</span>
               </Link>
               {/* Chat */}
-              <Link
-                href={"/chat/cenas"}
-                className="flex flex-row gap-4 items-center justify-start transition duration-200 hover:text-gray-400"
-              >
-                <Image
-                  src={"/chat-circle.svg"}
-                  alt="chat-icon"
-                  width={20}
-                  height={20}
-                />
-                <span className="font-sans font-medium">Start chatting</span>
-              </Link>
+              {status === "authenticated" ? (
+                <Link
+                  href={"/chat/cenas"}
+                  className="flex flex-row gap-4 items-center justify-start transition duration-200 hover:text-gray-400"
+                >
+                  <Image
+                    src={"/chat-circle.svg"}
+                    alt="chat-icon"
+                    width={20}
+                    height={20}
+                  />
+                  <span className="font-sans font-medium">Start chatting</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowNav(false);
+                    setShowModal(true);
+                  }}
+                  className="flex flex-row gap-4 items-center justify-start transition duration-200 hover:text-gray-400"
+                >
+                  <Image
+                    src={"/chat-circle.svg"}
+                    alt="chat-icon"
+                    width={20}
+                    height={20}
+                  />
+                  <span className="font-sans font-medium">Start chatting</span>
+                </button>
+              )}
               {/* Explore */}
               <Link
                 href={"/explore"}

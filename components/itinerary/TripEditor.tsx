@@ -3,6 +3,7 @@
 import { useMediaQuery } from "react-responsive";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerOverlay,
   DrawerPortal,
@@ -10,6 +11,7 @@ import {
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 import TripPlanner from "./TripPlanner";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 /**
  * TripEditor component that provides a drawer interface for trip planning
@@ -32,14 +34,22 @@ const TripEditor = () => {
       open={showEditor}
       onClose={() => setShowEditor(false)}
     >
+      
       <DrawerPortal>
         <DrawerOverlay
           className={cn(isDesktop ? "fixed inset-0 z-50 bg-none" : "")}
         />
+       
         <DrawerContent
           onInteractOutside={() => setShowEditor(false)}
           className={drawerContentClasses}
         >
+           {!isDesktop && (
+            <DrawerClose onClick={() => setShowEditor(false)} className="absolute right-2 top-2 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2">
+              <X className="h-[18px] w-[18px]" />
+              <span className="sr-only">Close</span>
+            </DrawerClose>
+          )}
           <TripPlanner />
         </DrawerContent>
       </DrawerPortal>

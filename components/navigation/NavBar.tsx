@@ -8,6 +8,7 @@ import { lazy, useEffect, useState } from "react";
 import SignInModal from "../sign-in/SignInModal";
 import { useTripEditorStore } from "@/lib/stores/trip-editor-store";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,8 @@ import { signOut } from "next-auth/react";
 const MenuDrawer = lazy(() => import("@/components/navigation/MenuDrawer"));
 
 const NavBar = () => {
+  const pathname = usePathname();
+  const isRootPage = pathname === "/en" || pathname === "/pt";
   const { data: session, status } = useSession();
   const { showNav, setShowNav } = useNavDrawerStore();
   const { showModal, setShowModal } = useSignInModalStore();
@@ -45,8 +48,11 @@ const NavBar = () => {
   return (
     <nav
       className={cn(
-        "fixed justify-between px-4 inset-x-0 z-10 flex h-16 items-center transition-colors duration-500",
-        hasScrolledDown && "bg-background/80 backdrop-blur-md",
+        "fixed justify-between px-4 inset-x-0 top-0 z-50 flex h-16 items-center transition-colors duration-500 w-full",
+        isRootPage
+          ? "bg-transparent"
+          : "bg-white",
+        hasScrolledDown && "bg-background/80 backdrop-blur-md"
       )}
       role="navigation"
       aria-label="Main navigation"
@@ -87,7 +93,7 @@ const NavBar = () => {
         <li role="none">
           <Link
             href="/explore"
-            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
+            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors truncate duration-200 inline-block"
             role="menuitem"
           >
             Start Exploring
@@ -96,7 +102,7 @@ const NavBar = () => {
         <li role="none">
           <Link
             href="/create"
-            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors duration-200 inline-block"
+            className="hover:bg-[#A17E4E] hover:bg-opacity-35 rounded-2xl px-4 py-2 cursor-pointer transition-colors truncate duration-200 inline-block"
             role="menuitem"
           >
             Creator Program
@@ -107,11 +113,11 @@ const NavBar = () => {
       {/* Website Logo */}
       <Link
         href={"/"}
-        className="flex items-center place-content-center justify-center tablet:min-w-[200px] desktop:min-w-[700px] h-[40px]"
+        className="flex items-center place-content-center justify-center w-full  h-[40px]"
         aria-label="Home"
       >
         <Image
-          className="hover:scale-110 transform ease-in-out duration-300"
+          className=" w-[30px] h-[30px] tablet:w-[40px] tablet:h-[40px] hover:scale-110 transform ease-in-out duration-300"
           src={"/icons/travel.svg"}
           width={40}
           height={40}
@@ -121,19 +127,19 @@ const NavBar = () => {
       {tripActivities && tripActivities.length > 0 && (
         <button
           onClick={() => setShowEditor(!showEditor)}
-          className="group relative z-0 border inline-flex justify-center items-center rounded-full font-medium outline-none gap-[.3em] transition-colors text-center py-[.25em] text-balance bg-background text-foreground border-input hover:border-black text-sm min-h-[32px] px-4 leading-[1.125]"
+          className="group relative z-0 border inline-flex justify-center items-center rounded-full font-medium outline-none transition-colors text-center py-[.25em] text-balance bg-background text-foreground border-input hover:border-black text-sm min-h-[38px] tablet:min-w-[100px] min-w-[60px] px-1 leading-[1.125]"
           aria-label={`Open trip editor with ${tripActivities.reduce((acc, day) => acc + day.length, 0)} activities`}
         >
-          <span className="flex flex-row truncate gap-1 items-center justify-center font-semibold">
+          <span className=" flex flex-row  w-fit truncate gap-1 items-center justify-center font-semibold">
             <Image
               src={"/icons/trip.svg"}
               height={20}
               width={20}
               alt=""
-              className="w-[20px] h-[20px]"
+              className=" tablet:w-[20px] tablet:h-[20px] mobile:w-[16px] mobile:h-[16px]"
             />
-            Trip
-            <span className="text-xs text-white font-semibold rounded-full bg-sky-500 px-2 py-1 min-w-[20px]">
+            <p className="truncate hidden tablet:flex">Trip</p>
+            <span className=" text-xs text-white tablet:font-semibold rounded-full bg-sky-500 tablet:px-2  px-1 py-1 tablet:min-w-[20px]">
               {tripActivities.reduce((acc, day) => acc + day.length, 0)}
             </span>
           </span>
@@ -141,7 +147,7 @@ const NavBar = () => {
       )}
 
       {/* Auth Section */}
-      <div className="flex items-center">
+      <div className=" items-center">
         {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -153,9 +159,9 @@ const NavBar = () => {
                 alt=""
                 width={24}
                 height={24}
-                className="rounded-full"
+                className="rounded-full min-w-[24px] min-h-[24px]"
               />
-              <span className="hidden sm:inline">{session.user?.name}</span>
+              <span className="hidden desktop:block text-xs truncate">{session.user?.name}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
