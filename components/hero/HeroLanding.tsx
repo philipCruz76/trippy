@@ -34,22 +34,32 @@ const HeroLanding = () => {
   }, []);
 
   return (
-    <div className="flex flex-col bg-[#ddb268] rounded-b-3xl items-start text-start min-w-[100dvw] h-[100dvh] font-sans font-semibold text-2xl p-24 text-[#251F1F]">
+    <div className="flex flex-col bg-[#ddb268] rounded-b-3xl items-start text-start min-w-[100dvw] max-w-[100dvw] h-[100dvh] font-sans font-semibold text-2xl pt-24 tablet:py-24 text-[#251F1F]">
       {/* Main Title Section */}
-      <div className="min-w-[65%] h-full">
+      <div className="tablet:min-w-[65%] w-full px-8 h-full">
         <motion.h1
           initial={variants.hidden}
           animate={controls}
           transition={transition}
-          className="pt-[50px] desktop:text-8xl text-4xl font-bold"
+          className="pt-[50px] desktop:text-8xl text-4xl  py-1 tablet:py-2 tablet:text-6xl truncate font-bold "
         >
           Going for a trip?
         </motion.h1>
 
         <AnimatedText
           text="Leave the planning to us"
-          className="pt-[10px] text-4xl font-light"
+          className="pt-[10px] text-4xl desktop:text-6xl truncate font-light "
         />
+
+        {/* Beta Disclaimer */}
+        <motion.p
+          initial={variants.hidden}
+          animate={controls}
+          transition={{ ...transition, delay: 1.8 }}
+          className="mt-4 text-sm font-normal opacity-75"
+        >
+          *Currently in beta - Best experienced on desktop devices
+        </motion.p>
       </div>
 
       {/* Animation Section */}

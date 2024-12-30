@@ -9,18 +9,16 @@ const HeroExplainer = ({}: HeroExplainerProps) => {
       <h1 className="pt-[100px] desktop:text-6xl text-4xl font-bold">
         How it's Done
       </h1>
-      <div className="flex flex-row gap-2 justify-center items-center">
-        <div className="w-full">
-          <Image
-            src={"/chat-with-ai.svg"}
-            alt="chat-with-ai"
-            width={500}
-            height={500}
-            className="w-[80%] pl-20"
-          />
-        </div>
-        <div className="w-[80%] text-start h-[60%] pr-12">
-          <h2 className="w-[400px] font-bold text-5xl">
+      <div className="flex desktop:flex-row flex-col gap-2 justify-center items-center">
+        <Image
+          src={"/chat-with-ai.svg"}
+          alt="chat-with-ai"
+          width={500}
+          height={500}
+          className="desktop:w-[70%] w-[200px] desktop:pl-20"
+        />
+        <div className="w-[70%] text-start h-[60%] pr-12">
+          <h2 className="min-w-fit truncate font-bold desktop:text-5xl text-3xl desktop:w-[400px]">
             Start chatting with us.
           </h2>
           <p className="w-full text-ellipsis">
@@ -30,11 +28,11 @@ const HeroExplainer = ({}: HeroExplainerProps) => {
           </p>
         </div>
       </div>
-      {/* How it's Done xplainer */}
 
-      <div className="flex flex-row gap-2 justify-center items-center">
-        <div className="w-[80%] text-start h-[60%] pl-12">
-          <h2 className="w-[400px] font-bold text-5xl">
+      {/* How it's Done xplainer */}
+      <div className="flex desktop:flex-row flex-col-reverse gap-2 justify-center items-center">
+        <div className="w-[70%] text-start h-[60%] desktop:pl-12">
+          <h2 className="min-w-fit  font-bold desktop:text-5xl text-3xl desktop:min-w-[400px]">
             Get personalized trip itineraries
           </h2>
           <p className="w-full text-ellipsis">
@@ -43,15 +41,13 @@ const HeroExplainer = ({}: HeroExplainerProps) => {
             the items you like and add them to your trip plan.
           </p>
         </div>
-        <div className="w-full">
-          <Image
-            src={"/online-travel-booking.svg"}
-            alt="travel-booking"
-            width={500}
-            height={500}
-            className="w-[80%] pr-20"
-          />
-        </div>
+        <Image
+          src={"/online-travel-booking.svg"}
+          alt="travel-booking"
+          width={500}
+          height={500}
+          className="desktop:w-[70%] w-[200px] desktop:pr-20"
+        />
       </div>
     </div>
   );
