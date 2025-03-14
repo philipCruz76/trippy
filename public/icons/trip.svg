@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="travel" x="0" y="0" style="enable-background:new 0 0 24 24" version="1.1" viewBox="0 0 24 24">
+  <g id="Suitcase_2">
+    <path id="_Rectangle_" d="M5 8.5h14c.8 0 1.5.7 1.5 1.5v11c0 .8-.7 1.5-1.5 1.5H5c-.8 0-1.5-.7-1.5-1.5V10c0-.8.7-1.5 1.5-1.5z" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+    <path id="_Path_" d="M3.5 13.5s2.5 1 8.5 1 8.5-1 8.5-1" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+    <circle id="_Path_2" cx="12" cy="12" r=".5" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></circle>
+    <path id="_Path_3" d="M8.5 17.5h7" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+    <path id="_Path_4" d="M8.5 19.5h7" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+    <path d="M5.5 8h1M17.5 8h1" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+    <circle cx="6" cy="23" r=".5" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></circle>
+    <circle cx="18" cy="23" r=".5" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></circle>
+    <path d="M9.5 2.5h5v6h-5zM9.5.5h5c.6 0 1 .4 1 1h0c0 .6-.4 1-1 1h-5c-.6 0-1-.4-1-1h0c0-.6.4-1 1-1z" style="fill:none;stroke:#303c42;stroke-linecap:round;stroke-linejoin:round"></path>
+  </g>
+</svg>

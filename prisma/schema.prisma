@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String        @id @unique @default(uuid())
+  email         String        @unique
+  image         String?
+  name          String?
+  username      String?       @unique
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  emailVerified Boolean?
+  accounts      Account[]
+  trips         Trip[]
+  chats         Chat[]
+  tripDetails   TripDetails[]
+}
+
+model Trip {
+  id          String    @id @default(uuid())
+  title       String
+  location    String
+  duration    Int
+  description String?
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  itinerary   TripDay[]
+  chats       Chat[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TripDay {
+  id         String     @id @default(uuid())
+  dayNumber  Int
+  title      String?
+  comment    String?    @db.Text
+  activities Activity[]
+  tripId     String
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model Place {
+  id          String          @id @default(uuid())
+  name        String
+  type        String?
+  description String?
+  address     String?
+  userRating  String?
+  ratingCount String?
+  images      UnsplashImage[]
+}
+
+model UnsplashImage {
+  id          String          @id @default(uuid())
+  url         String
+  description String?
+  placeId     String
+  aspect      Int?
+  creatorId   String
+  creator     UnsplashCreator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  place       Place           @relation(fields: [placeId], references: [id], onDelete: Cascade)
+}
+
+model UnsplashCreator {
+  id          String          @id @default(uuid())
+  username    String
+  profileLink String
+  images      UnsplashImage[]
+}
+
+model Account {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Destinations {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  city       String?  @unique
+  country    String?
+  photo      String?
+}
+
+// Chat and related models
+model Chat {
+  id        String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  keywords  Json // Stores KeywordClassificationsType
+  location  Json // Stores LatLngResult
+  summary   String    @db.Text
+  trip      Trip?     @relation(fields: [tripId], references: [id])
+  tripId    String?
+  days      ChatDay[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChatDay {
+  id          String     @id @default(uuid())
+  title       String
+  description String     @db.Text
+  activities  Activity[]
+  chatId      String
+  chat        Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model TripDetails {
+  id              String     @id @default(uuid())
+  title           String
+  username        String?
+  location        String
+  coverPhoto      String
+  photoCreditName String?
+  photoCreditLink String?
+  duration        Int
+  published       Boolean    @default(false)
+  overview        Overview?
+  itinerary       Itinerary?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Overview {
+  id            String      @id @default(uuid())
+  summary       String      @db.Text
+  activityTypes Json // Array of maps storing activity type counts
+  tripId        String      @unique
+  trip          TripDetails @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model Itinerary {
+  id        String      @id @default(uuid())
+  title     String      @default("")
+  dailyTrip DailyTrip[]
+  tripId    String      @unique
+  trip      TripDetails @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model DailyTrip {
+  id          String     @id @default(uuid())
+  dayNumber   Int
+  title       String
+  overview    Json // { summary: string, activityTypes: Map[], destinations: { name: string, photos: string[] }[] }
+  activities  Activity[]
+  itineraryId String
+  itinerary   Itinerary  @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id           String     @id @default(uuid())
+  placeId      String // Google Places ID
+  activityName String
+  summary      String?    @db.Text
+  photos       String[]
+  location     Json       @default("{}")
+  activityType String?
+  time         String?
+  dailyTripId  String?
+  manualInput  Boolean    @default(false)
+  dailyTrip    DailyTrip? @relation(fields: [dailyTripId], references: [id], onDelete: Cascade)
+  tripDayId    String?
+  tripDay      TripDay?   @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+  chatDayId    String?
+  chatDay      ChatDay?   @relation(fields: [chatDayId], references: [id], onDelete: Cascade)
+}
